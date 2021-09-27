@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="text_size_medium">24sp</dimen>
+    <dimen name="margin_medium">32dp</dimen>
+    <dimen name="rectangle_decoration_height">250dp</dimen>
+    <dimen name="rectangle_inner_padding">20dp</dimen>
+</resources>

@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">CameraXWrapper-Diplomski</string>
+    <string name="demo_camerax_app">DEMO CAMERAX APP</string>
+    <string name="start">Start</string>
+    <string name="take_picture">Capture</string>
+    <string name="swap_camera">Swap</string>
+    <string name="start_qr_scanner">QR Scanner</string>
+    <string name="current_mode">Current mode: %s\n</string>
+    <string name="result">Result: %s</string>
+    <string name="barcode_scanner">Barcode scanner</string>
+    <string name="change_scan">Change Scan</string>
+</resources>

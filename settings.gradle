@@ -1,0 +1,3 @@
+rootProject.name = "CameraXWrapper-Diplomski"
+include ':app'
+include ':CameraX'

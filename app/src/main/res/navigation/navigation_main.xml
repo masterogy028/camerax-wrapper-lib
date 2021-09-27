@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/navigation_main"
+    app:startDestination="@id/initialFragment">
+    <fragment
+        android:id="@+id/initialFragment"
+        android:name="com.dipl.camerax.InitialFragment"
+        android:label="InitialFragment"
+        tools:layout="@layout/fragment_initial">
+        <action
+            android:id="@+id/action_initialFragment_to_cameraXSummaryFragment"
+            app:destination="@id/cameraXSummaryFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/cameraXSummaryFragment"
+        android:name="com.dipl.camerax.CameraXSummaryFragment"
+        android:label="fragment_camera_x_preview"
+        tools:layout="@layout/fragment_camera_x_summary" />
+</navigation>

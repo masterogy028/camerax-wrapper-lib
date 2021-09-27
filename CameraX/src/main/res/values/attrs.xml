@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    <declare-styleable name="RectangleView">
+        <attr name="innerHorizontalPadding" format="dimension" />
+        <attr name="rectangleHeight" format="dimension" />
+        <attr name="outerColor" format="color" />
+    </declare-styleable>
+</resources>
