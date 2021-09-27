@@ -1,38 +1,49 @@
 package com.dipl.cameraxlib.usecase.image_analysis.analyzers
 
+import android.graphics.Bitmap
 import androidx.camera.core.ImageProxy
 import com.dipl.cameraxlib.usecase.image_analysis.ImageCrop
-import com.google.mlkit.vision.barcode.Barcode
-import com.google.mlkit.vision.barcode.BarcodeScannerOptions
-import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.face.Face
+import com.google.mlkit.vision.face.FaceDetection
+import com.google.mlkit.vision.face.FaceDetectorOptions
 
-class BarcodeScanner(
-    private val registeredResultListener: BarcodeScannerResultListener,
+class FaceRecognitionScanner(
+    private val registeredResultListener: FaceRecognitionScannerResultListener,
     imageCrop: ImageCrop?,
-    analyzeImageBitmap: AnalyzeImageLambda = {},
+    analyzeImageBitmap: AnalyzeImageLambda = {}
 ) : DefaultImageAnalyzer(imageCrop, analyzeImageBitmap) {
 
-    private val options = BarcodeScannerOptions.Builder().build()
-    private val scanner = BarcodeScanning.getClient(options)
+    // High-accuracy landmark detection and face classification
+    private val highAccuracyOpts = FaceDetectorOptions.Builder()
+        .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
+        .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_ALL)
+        .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
+        .build()
+
+    // Real-time contour detection
+    private val realTimeOpts = FaceDetectorOptions.Builder()
+        .setContourMode(FaceDetectorOptions.CONTOUR_MODE_ALL)
+        .build()
+
+    private val detector = FaceDetection.getClient(realTimeOpts)
 
     override fun analyze(image: ImageProxy) {
         super.analyze(image)
-        lastAnalyzedFrame?.also { bitmapImage ->
-            val inputImage = InputImage.fromBitmap(bitmapImage, 0)
-            scanner.process(inputImage).addOnSuccessListener { barcodes ->
-                barcodes.firstOrNull()?.apply {
-                    registeredResultListener.onSuccessStringResult(displayValue ?: "")
-                    registeredResultListener.onSuccessResult(this)
+        if (freshData) {
+            freshData = false
+            lastAnalyzedFrame?.also { bitmapImage ->
+                val inputImage = InputImage.fromBitmap(bitmapImage, 0)
+                detector.process(inputImage).addOnSuccessListener { faces ->
+                    registeredResultListener.onSuccessResult(faces, bitmapImage)
                 }
+                    .addOnFailureListener { registeredResultListener.onFailure(it) }
             }
-                .addOnFailureListener { registeredResultListener.onFailure(it) }
         }
     }
 }
 
-interface BarcodeScannerResultListener {
-    fun onSuccessStringResult(result: String) {}
-    fun onSuccessResult(barcode: Barcode?) {}
-    fun onFailure(barcode: Exception) {}
+interface FaceRecognitionScannerResultListener {
+    fun onSuccessResult(faces: MutableList<Face>, originalBitmap: Bitmap) {}
+    fun onFailure(e: Exception) {}
 }

@@ -6,20 +6,14 @@ import com.google.mlkit.vision.barcode.Barcode
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
-import java.lang.Exception
 
-class QRScanner(
-    private val registeredResultListener: QRScannerResultListener,
+class BarcodeScanner(
+    private val registeredResultListener: BarcodeScannerResultListener,
     imageCrop: ImageCrop?,
     analyzeImageBitmap: AnalyzeImageLambda = {},
 ) : DefaultImageAnalyzer(imageCrop, analyzeImageBitmap) {
 
-    private val options = BarcodeScannerOptions.Builder()
-        .setBarcodeFormats(
-            Barcode.FORMAT_QR_CODE,
-            Barcode.FORMAT_AZTEC
-        )
-        .build()
+    private val options = BarcodeScannerOptions.Builder().build()
     private val scanner = BarcodeScanning.getClient(options)
 
     override fun analyze(image: ImageProxy) {
@@ -28,7 +22,7 @@ class QRScanner(
             val inputImage = InputImage.fromBitmap(bitmapImage, 0)
             scanner.process(inputImage).addOnSuccessListener { barcodes ->
                 barcodes.firstOrNull()?.apply {
-                    registeredResultListener.onSuccessStringResult(toString())
+                    registeredResultListener.onSuccessStringResult(displayValue ?: "")
                     registeredResultListener.onSuccessResult(this)
                 }
             }
@@ -37,8 +31,8 @@ class QRScanner(
     }
 }
 
-interface QRScannerResultListener {
+interface BarcodeScannerResultListener {
     fun onSuccessStringResult(result: String) {}
     fun onSuccessResult(barcode: Barcode?) {}
-    fun onFailure(barcode: Exception) {}
+    fun onFailure(e: Exception) {}
 }

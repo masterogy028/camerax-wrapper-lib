@@ -1,72 +1,42 @@
 package com.dipl.cameraxlib.usecase.image_analysis.analyzers
 
-import android.annotation.SuppressLint
-import android.graphics.Bitmap
-import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
-import com.dipl.cameraxlib.CameraXExceptions
-import com.dipl.cameraxlib.crop
-import com.dipl.cameraxlib.rotate
-import com.dipl.cameraxlib.toBitmap
 import com.dipl.cameraxlib.usecase.image_analysis.ImageCrop
+import com.google.mlkit.vision.barcode.Barcode
+import com.google.mlkit.vision.barcode.BarcodeScannerOptions
+import com.google.mlkit.vision.barcode.BarcodeScanning
+import com.google.mlkit.vision.common.InputImage
 
-class DefaultImageAnalyzer(
-    private val imageCrop: ImageCrop?,
-    private val analyzeImageBitmap: AnalyzeImageLambda = {},
-) : ImageAnalysis.Analyzer {
+class QRScanner(
+    private val registeredResultListener: QRScannerResultListener,
+    imageCrop: ImageCrop?,
+    analyzeImageBitmap: AnalyzeImageLambda = {},
+) : DefaultImageAnalyzer(imageCrop, analyzeImageBitmap) {
 
-    private var lastAnalyzedTimestamp = 0L
+    private val options = BarcodeScannerOptions.Builder()
+        .setBarcodeFormats(
+            Barcode.FORMAT_QR_CODE
+        )
+        .build()
+    private val scanner = BarcodeScanning.getClient(options)
 
-    @SuppressLint("UnsafeExperimentalUsageError")
-    override fun analyze(image: ImageProxy): Bitmap? {
-        val currentTimestamp = System.currentTimeMillis()
-        if (currentTimestamp - lastAnalyzedTimestamp >= 300) {
-
-            image.image?.let {
-
-                val bitmap = it.toBitmap(image.width, image.height)
-
-                val rotatedBitmap = bitmap?.rotate(image.imageInfo.rotationDegrees)
-
-                // if bitmap is not null, we call callback with that bitmap
-                rotatedBitmap?.let {
-                    return rotatedBitmap.crop(imageCrop).also(analyzeImageBitmap)
+    override fun analyze(image: ImageProxy) {
+        super.analyze(image)
+        lastAnalyzedFrame?.also { bitmapImage ->
+            val inputImage = InputImage.fromBitmap(bitmapImage, 0)
+            scanner.process(inputImage).addOnSuccessListener { barcodes ->
+                barcodes.firstOrNull()?.apply {
+                    registeredResultListener.onSuccessStringResult(displayValue ?: "")
+                    registeredResultListener.onSuccessResult(this)
                 }
             }
-            lastAnalyzedTimestamp = currentTimestamp
+                .addOnFailureListener { registeredResultListener.onFailure(it) }
         }
-        image.close()
-        return null
     }
 }
 
-/**
- * The function crops the bitmap image if necessary and forwards the image to the caller trough [AnalyzeImageLambda] callback.
- *
- * The image will not be cropped if [ImageCrop] parameter of [AnalyzeUseCaseParameters] is null or if there is no preview use case bound to the lifecycle.
- *
- * @throws [CameraXExceptions.PictureAnalyzeException]
- */
-fun Bitmap.crop(imageCrop: ImageCrop?): Bitmap {
-    try {
-        val croppedBitmap: Bitmap =
-            imageCrop.let {
-                if (it != null) {
-                    crop(
-                        it.aspectRatio,
-                        it.widthRatio,
-                        it.heightRatio
-                    ).also { recycle() }
-                } else {
-                    this
-                }
-            }
-        return croppedBitmap
-        // parameters[AnalyzeUseCaseParameters.OPTION_ANALYZE_CALLBACK]!!.analyze(croppedBitmap)
-    } catch (e: NullPointerException) {
-        e.printStackTrace()
-        throw CameraXExceptions.IOException("PreviewView might not be initialized!")
-    }
+interface QRScannerResultListener {
+    fun onSuccessStringResult(result: String) {}
+    fun onSuccessResult(barcode: Barcode?) {}
+    fun onFailure(e: Exception) {}
 }
-
-typealias AnalyzeImageLambda = (image: Bitmap) -> Unit
