@@ -73,9 +73,9 @@ class CameraXSummaryFragment :
             obImageCapture.takePicture(
                 "cameraX_dipl${System.currentTimeMillis()}",
                 ".jpg",
-                requireContext().getOutputDirectory(),
-                requireContext()
-            )
+                requireContext(),
+                requireContext().getOutputDirectory()
+                )
         }
         viewBinding.btnSwapCamera.setOnClickListener {
             lensFacing =

@@ -12,6 +12,7 @@ import androidx.camera.core.ImageCaptureException
 import com.dipl.cameraxlib.CameraXController
 import com.dipl.cameraxlib.CameraXExceptions
 import com.dipl.cameraxlib.createFile
+import com.dipl.cameraxlib.getDefaultOutputDirectory
 import com.dipl.cameraxlib.usecase.image_capture.ImageCaptureUseCaseParameters.Companion.OPTION_IMAGE_CAPTURE_CALLBACKS
 import com.dipl.cameraxlib.usecase.image_capture.ImageCaptureUseCaseParameters.Companion.OPTION_IMAGE_CAPTURE_EXECUTOR
 import com.dipl.cameraxlib.usecase.image_capture.ImageCaptureUseCaseParameters.Companion.OPTION_IMAGE_CAPTURE_FLASH
@@ -52,8 +53,8 @@ class OBImageCapture(private val parameters: ImageCaptureUseCaseParameters) {
     fun takePicture(
         fileName: String,
         photoExtension: String,
-        outputDirectory: File,
-        context: Context
+        context: Context,
+        outputDirectory: File = context.getDefaultOutputDirectory(),
     ) {
         if (!this::isCameraAvailable.isInitialized || !isCameraAvailable()) {
             throw CameraXExceptions.ImageCaptureException("The camera is not available to this OBImageCapture use case.\nThe camera needs to be started by the controller.")

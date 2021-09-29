@@ -1,5 +1,6 @@
 package com.dipl.cameraxlib
 
+import android.content.Context
 import android.graphics.*
 import android.media.Image
 import java.io.ByteArrayOutputStream
@@ -162,3 +163,13 @@ fun Bitmap.crop(
 /** Helper function used to create a timestamped file */
 fun createFile(baseFolder: File, format: String, extension: String) =
     File(baseFolder, format + extension)
+
+/** Use external media if it is available, our app's file directory otherwise */
+fun Context.getDefaultOutputDirectory(): File {
+    val appContext = applicationContext
+    val mediaDir = externalMediaDirs.firstOrNull()?.let {
+        File(it, "default_dir").apply { mkdirs() }
+    }
+    return if (mediaDir != null && mediaDir.exists())
+        mediaDir else appContext.filesDir
+}
