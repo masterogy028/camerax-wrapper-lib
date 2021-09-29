@@ -1,8 +1,7 @@
 package com.dipl.camerax
 
 import android.annotation.SuppressLint
-import android.content.Context
-import android.graphics.*
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -15,6 +14,7 @@ import androidx.core.view.drawToBitmap
 import androidx.navigation.fragment.findNavController
 import com.dipl.camerax.databinding.FragmentCameraXSummaryBinding
 import com.dipl.camerax.utils.*
+import com.dipl.camerax.utils.scanning_components.AnalyzeComponent
 import com.dipl.cameraxlib.CameraXController
 import com.dipl.cameraxlib.usecase.image_analysis.AnalyzeImageListener
 import com.dipl.cameraxlib.usecase.image_analysis.ImageCrop
@@ -27,35 +27,39 @@ import com.dipl.cameraxlib.usecase.image_capture.ImageCaptureCallbacks
 import com.dipl.cameraxlib.usecase.image_capture.OBImageCapture
 import com.dipl.cameraxlib.usecase.image_capture.createOBImageCapture
 import com.dipl.cameraxlib.usecase.preview.createOBPreview
-import com.google.mlkit.vision.barcode.Barcode
-import com.google.mlkit.vision.barcode.BarcodeScannerOptions
-import com.google.mlkit.vision.barcode.BarcodeScanning
-import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.Face
-import java.io.File
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class CameraXSummaryFragment :
     ViewBindingFragment<FragmentCameraXSummaryBinding>(bindViewBy = {
         FragmentCameraXSummaryBinding.inflate(it)
-    }), ImageCaptureCallbacks {
+    }) {
 
-    var requestStorageActivityLauncher: ActivityResultLauncher<String>? = null
+    // required for analyzing raw input from analyze use case if we do not want to use the library pre-installed ones
+    @Inject
+    lateinit var analyzeComponent: AnalyzeComponent
 
-    private var controller: CameraXController? = null
+    // util for requesting camera permissions
+    var requestCameraActivityLauncher: ActivityResultLauncher<String>? = null
+
+    // variable for storing image capture use case so we can perform image capture
     private lateinit var obImageCapture: OBImageCapture
+
+    // storing the value of camera lens facing
     private var lensFacing: Int = CameraSelector.LENS_FACING_FRONT
+
+    // scan type so we can switch scan types programmatically within this fragment
     private var scanType: DomainScanType = DomainScanType.BarcodeScanner
-    private val options = BarcodeScannerOptions.Builder()
-        .setBarcodeFormats(
-            Barcode.FORMAT_QR_CODE,
-            Barcode.FORMAT_AZTEC
-        )
-        .build()
-    private val scanner = BarcodeScanning.getClient(options)
+
+    // the bitmap of the view that we want to draw on
     private val targetBitmap by lazy { viewBinding.ivRectView.drawToBitmap() }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        requestStorageActivityLauncher = registerActivityResultForCameraPermission {
+        // registering this fragment for onActivityResult when requesting permissions
+        requestCameraActivityLauncher = registerActivityResultForCameraPermission {
             setUpCameraX()
         }
     }
@@ -68,7 +72,7 @@ class CameraXSummaryFragment :
         viewBinding.btnTakePicture.setOnClickListener {
             obImageCapture.takePicture(
                 "cameraX_dipl${System.currentTimeMillis()}",
-                ".png",
+                ".jpg",
                 requireContext().getOutputDirectory(),
                 requireContext()
             )
@@ -87,23 +91,15 @@ class CameraXSummaryFragment :
     }
 
     private fun checkCameraPermissions() {
-        if (requestStorageActivityLauncher != null) {
+        if (requestCameraActivityLauncher != null) {
             requestCameraPermissionsIfNeededAndPerformDenyAction(
-                requestCameraActivityLauncher = requestStorageActivityLauncher!!,
+                requestCameraActivityLauncher = requestCameraActivityLauncher!!,
                 // if the user denies the permission we will make him go back to the home screen
                 denyPermissionsAction = { findNavController().navigateUp() }
             )
         } else {
             setUpCameraX()
         }
-    }
-
-    fun scanImage(bitmapImage: Bitmap) {
-        val image = InputImage.fromBitmap(bitmapImage, 0)
-        scanner.process(image).addOnSuccessListener { barcodes ->
-            Log.d(TAG, barcodes.firstOrNull()?.displayValue ?: "")
-        }
-            .addOnFailureListener { }
     }
 
     @SuppressLint("CheckResult")
@@ -176,46 +172,40 @@ class CameraXSummaryFragment :
             setBackpressureStrategy(STRATEGY_KEEP_ONLY_LATEST)
             setAnalyzeCallback(object : AnalyzeImageListener {
                 override fun analyze(image: Bitmap) {
-                    scanImage(image)
+                    analyzeComponent.scanForQRCode(image).addOnSuccessListener { barcodes ->
+                        Log.d(TAG, barcodes.firstOrNull()?.displayValue ?: "")
+                    }
+                        .addOnFailureListener { }
                 }
             })
         }
         obImageCapture = createOBImageCapture {
             setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY) // ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY
             setFlashMode(ImageCapture.FLASH_MODE_OFF) // ImageCapture.FLASH_MODE_ON
-            setImageCaptureCallback(this@CameraXSummaryFragment)
+            setImageCaptureCallback(ImageCaptureCallbacksImpl)
         }
 
-        controller = CameraXController.getControllerForParameters(
+        CameraXController.getControllerForParameters(
             requireContext(),
             viewLifecycleOwner,
             obPreview,
             obImageAnalyzer,
             obImageCapture
-        )
-        controller?.start()
+        ).start()
     }
 
     companion object {
         const val TAG = "CameraXPreviewTAG"
+    }
 
-        /** Use external media if it is available, our app's file directory otherwise */
-        fun Context.getOutputDirectory(): File {
-            val appContext = applicationContext
-            val mediaDir = externalMediaDirs.firstOrNull()?.let {
-                File(it, appContext.resources.getString(R.string.app_name)).apply { mkdirs() }
-            }
-            return if (mediaDir != null && mediaDir.exists())
-                mediaDir else appContext.filesDir
+    object ImageCaptureCallbacksImpl : ImageCaptureCallbacks {
+        override fun onSuccess(uri: Uri) {
+            Log.d("ImageCaptureSuccess", "onSuccess: ${uri.path}")
         }
-    }
 
-    override fun onSuccess(uri: Uri) {
-        Log.d("ImageCaptureSuccess", "onSuccess: ${uri.path}")
-    }
-
-    override fun onError(e: Exception) {
-        Log.d("ImageCaptureError", "onError: $e")
-        e.printStackTrace()
+        override fun onError(e: Exception) {
+            Log.d("ImageCaptureError", "onError: $e")
+            e.printStackTrace()
+        }
     }
 }
