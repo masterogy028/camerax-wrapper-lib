@@ -151,7 +151,7 @@ class CameraXSummaryFragment :
                         ) {
                             Log.d(
                                 "generic FaceScanner:",
-                                faces.joinToString { it.boundingBox.flattenToString() })
+                                faces.joinToString(separator = ", ") { it.boundingBox.flattenToString() })
                             try {
                                 viewBinding.ivRectView.post {
                                     var resultBitmap = targetBitmap
