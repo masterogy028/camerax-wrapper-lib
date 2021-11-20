@@ -49,7 +49,6 @@ open class RectangleView @JvmOverloads constructor(
             outerPaint.color = outerColor
             outerPaint.style = Style.FILL
         } catch (e: Exception) {
-
         } finally {
             styledAttributes.recycle()
         }
