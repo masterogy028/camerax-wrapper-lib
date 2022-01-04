@@ -5,7 +5,7 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.view.PreviewView
 import com.dipl.cameraxlib.CameraXExceptions
 import com.dipl.cameraxlib.MissingMandatoryConfigParameterException
-import com.dipl.cameraxlib.config.CameraXConfig
+import com.dipl.cameraxlib.config.CameraXUseCaseConfig
 import com.dipl.cameraxlib.config.CameraXOption
 import com.dipl.cameraxlib.config.Config
 import com.dipl.cameraxlib.config.Option
@@ -92,7 +92,7 @@ class AnalyzeUseCaseParameters private constructor(val config: Config) {
     }
 }
 
-internal class AnalyzeImageUseCaseConfig : CameraXConfig() {
+internal class AnalyzeImageUseCaseConfig : CameraXUseCaseConfig() {
 
     override fun buildDefaultConfig(): Config {
         return Defaults.build()

@@ -3,7 +3,7 @@ package com.dipl.cameraxlib.usecase.preview
 import androidx.camera.core.CameraSelector
 import androidx.camera.view.PreviewView
 import com.dipl.cameraxlib.MissingMandatoryConfigParameterException
-import com.dipl.cameraxlib.config.CameraXConfig
+import com.dipl.cameraxlib.config.CameraXUseCaseConfig
 import com.dipl.cameraxlib.config.CameraXOption
 import com.dipl.cameraxlib.config.Config
 import com.dipl.cameraxlib.config.Option
@@ -42,7 +42,7 @@ class PreviewUseCaseParameters private constructor(val config: Config) {
     }
 }
 
-internal class PreviewUseCaseConfig : CameraXConfig() {
+internal class PreviewUseCaseConfig : CameraXUseCaseConfig() {
 
     override fun buildDefaultConfig(): Config {
         return Defaults.build()

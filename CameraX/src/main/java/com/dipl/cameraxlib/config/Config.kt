@@ -61,7 +61,7 @@ interface Config {
 }
 
 @Suppress("UNCHECKED_CAST")
-abstract class CameraXConfig : Config {
+abstract class CameraXUseCaseConfig : Config {
 
     override val mOptions: HashMap<Option<*>, Any?> = HashMap()
 

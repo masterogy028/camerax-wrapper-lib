@@ -3,7 +3,7 @@ package com.dipl.cameraxlib.usecase.image_capture
 import android.net.Uri
 import androidx.camera.core.ImageCapture
 import com.dipl.cameraxlib.MissingMandatoryConfigParameterException
-import com.dipl.cameraxlib.config.CameraXConfig
+import com.dipl.cameraxlib.config.CameraXUseCaseConfig
 import com.dipl.cameraxlib.config.CameraXOption
 import com.dipl.cameraxlib.config.Config
 import com.dipl.cameraxlib.config.Option
@@ -65,7 +65,7 @@ class ImageCaptureUseCaseParameters private constructor(val config: Config) {
     }
 }
 
-internal class ImageCaptureUseCaseConfig : CameraXConfig() {
+internal class ImageCaptureUseCaseConfig : CameraXUseCaseConfig() {
 
     override fun buildDefaultConfig(): Config {
         return Defaults.build()
