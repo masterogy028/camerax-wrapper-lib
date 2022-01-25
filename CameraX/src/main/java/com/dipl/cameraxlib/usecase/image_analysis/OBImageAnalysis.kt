@@ -35,12 +35,12 @@ class OBImageAnalysis(private val parameters: AnalyzeUseCaseParameters) {
                 scanType.resultListener,
                 parameters[OPTION_CROP_ANALYZE_AREA]
             ) { image ->
-                parameters[OPTION_ANALYZE_CALLBACK]!!.analyze(image)
+                parameters[OPTION_ANALYZE_CALLBACK]?.analyze(image)
             }
         }
         is BarcodeScannerType -> {
             BarcodeScanner(scanType.resultListener, parameters[OPTION_CROP_ANALYZE_AREA]) { image ->
-                parameters[OPTION_ANALYZE_CALLBACK]!!.analyze(image)
+                parameters[OPTION_ANALYZE_CALLBACK]?.analyze(image)
             }
         }
         is FaceRecognitionScannerType -> {
@@ -48,7 +48,7 @@ class OBImageAnalysis(private val parameters: AnalyzeUseCaseParameters) {
                 scanType.resultListener,
                 parameters[OPTION_CROP_ANALYZE_AREA]
             ) { image ->
-                parameters[OPTION_ANALYZE_CALLBACK]!!.analyze(image)
+                parameters[OPTION_ANALYZE_CALLBACK]?.analyze(image)
             }
         }
     }
