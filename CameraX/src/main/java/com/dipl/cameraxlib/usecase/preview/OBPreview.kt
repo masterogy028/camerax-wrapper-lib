@@ -7,6 +7,7 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
 import com.dipl.cameraxlib.usecase.preview.PreviewUseCaseParameters.Companion.OPTION_PREVIEW_LENS_FACING
 import com.dipl.cameraxlib.usecase.preview.PreviewUseCaseParameters.Companion.OPTION_PREVIEW_VIEW
+import com.dipl.cameraxlib.usecase.preview.PreviewUseCaseParameters.Companion.OPTION_ROTATION
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -27,7 +28,7 @@ class OBPreview(private val parameters: PreviewUseCaseParameters) {
                 display.getRealMetrics(it)
             }
             screenAspectRatio = clampAspectRatio(metrics.widthPixels, metrics.heightPixels)
-            this@OBPreview.rotation = display.rotation
+            this@OBPreview.rotation = parameters[OPTION_ROTATION] ?: display.rotation
         }
 
         useCase = Preview.Builder()

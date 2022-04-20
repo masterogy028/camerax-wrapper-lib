@@ -5,8 +5,9 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.view.PreviewView
 import com.dipl.cameraxlib.CameraXExceptions
 import com.dipl.cameraxlib.MissingMandatoryConfigParameterException
-import com.dipl.cameraxlib.config.CameraXUseCaseConfig
+import com.dipl.cameraxlib.OBPictureAnalyzeException
 import com.dipl.cameraxlib.config.CameraXOption
+import com.dipl.cameraxlib.config.CameraXUseCaseConfig
 import com.dipl.cameraxlib.config.Config
 import com.dipl.cameraxlib.config.Option
 import com.dipl.cameraxlib.ui.RectangleView
@@ -142,7 +143,8 @@ sealed class OBScannerType {
     object DefaultScannerType : OBScannerType()
     class BarcodeScannerType(val resultListener: BarcodeScannerResultListener) : OBScannerType()
     class QRScannerType(val resultListener: QRScannerResultListener) : OBScannerType()
-    class FaceRecognitionScannerType(val resultListener: FaceRecognitionScannerResultListener) : OBScannerType()
+    class FaceRecognitionScannerType(val resultListener: FaceRecognitionScannerResultListener) :
+        OBScannerType()
 }
 
 /**
@@ -174,11 +176,11 @@ sealed class ImageCrop {
 
     data class WithRatio(val hRatio: Float, val wRatio: Float, val aRatio: Float) : ImageCrop() {
         override val widthRatio: Float
-            get() = run { if (wRatio == 0f) throw CameraXExceptions.PictureAnalyzeException("You can not set the crop width ratio to 0.") else wRatio }
+            get() = run { if (wRatio == 0f) throw OBPictureAnalyzeException("You can not set the crop width ratio to 0.") else wRatio }
         override val heightRatio: Float
-            get() = run { if (hRatio == 0f) throw CameraXExceptions.PictureAnalyzeException("You can not set the crop height ratio to 0.") else hRatio }
+            get() = run { if (hRatio == 0f) throw OBPictureAnalyzeException("You can not set the crop height ratio to 0.") else hRatio }
         override val aspectRatio: Float
-            get() = run { if (aRatio == 0f) throw CameraXExceptions.PictureAnalyzeException("You can not set the crop aspect ratio to 0.") else aRatio }
+            get() = run { if (aRatio == 0f) throw OBPictureAnalyzeException("You can not set the crop aspect ratio to 0.") else aRatio }
     }
 }
 

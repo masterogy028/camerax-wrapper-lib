@@ -70,7 +70,7 @@ abstract class CameraXController protected constructor(
             })
         } else {
             if (cameraState == CameraXState.CLOSED) {
-                throw CameraXExceptions.DefaultException(
+                throw OBDefaultException(
                     "The camera controller is closed!" +
                             "\nYou might be using the same controller in multiple fragments/activities."
                 )
@@ -89,7 +89,7 @@ abstract class CameraXController protected constructor(
     open fun stop() {
         Log.d(TAG, "stop: //////")
         if (cameraState == CameraXState.CLOSED) {
-            throw CameraXExceptions.DefaultException(
+            throw OBDefaultException(
                 "The camera controller is closed!" +
                         "\nYou might be using the same controller in multiple fragments/activities."
             )
@@ -107,7 +107,7 @@ abstract class CameraXController protected constructor(
     protected open fun close() {
         Log.d(TAG, "close: //////")
         if (cameraState == CameraXState.CLOSED) {
-            throw CameraXExceptions.DefaultException("The camera controller is already closed!")
+            throw OBDefaultException("The camera controller is already closed!")
         }
         stop()
         cameraState = CameraXState.CLOSED

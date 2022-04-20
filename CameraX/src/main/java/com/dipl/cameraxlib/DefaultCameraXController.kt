@@ -53,7 +53,7 @@ class DefaultCameraXController private constructor(
                     *useCases.toTypedArray()
                 )
             } catch (exc: Exception) {
-                throw CameraXExceptions.DefaultException("Use case binding failed! Check the validity of the use case parameters!")
+                throw OBDefaultException("Use case binding failed! Check the validity of the use case parameters!", exc)
             }
 
         }, ContextCompat.getMainExecutor(context))

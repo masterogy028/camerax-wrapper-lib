@@ -2,13 +2,15 @@ package com.dipl.cameraxlib.usecase.image_capture
 
 import android.net.Uri
 import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageProxy
 import com.dipl.cameraxlib.MissingMandatoryConfigParameterException
-import com.dipl.cameraxlib.config.CameraXUseCaseConfig
 import com.dipl.cameraxlib.config.CameraXOption
+import com.dipl.cameraxlib.config.CameraXUseCaseConfig
 import com.dipl.cameraxlib.config.Config
 import com.dipl.cameraxlib.config.Option
-import com.dipl.cameraxlib.usecase.image_capture.ImageCaptureUseCaseParameters.Companion.OPTION_IMAGE_CAPTURE_CALLBACKS
+import com.dipl.cameraxlib.usecase.image_capture.ImageCaptureUseCaseParameters.Companion.OPTION_IMAGE_CAPTURED_CALLBACK
 import com.dipl.cameraxlib.usecase.image_capture.ImageCaptureUseCaseParameters.Companion.OPTION_IMAGE_CAPTURE_EXECUTOR
+import com.dipl.cameraxlib.usecase.image_capture.ImageCaptureUseCaseParameters.Companion.OPTION_IMAGE_SAVED_CALLBACK
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -22,8 +24,13 @@ class ImageCaptureUseCaseParameters private constructor(val config: Config) {
             return this
         }
 
-        fun setImageCaptureCallback(callback: ImageCaptureCallbacks): Builder {
-            config.insertOption(OPTION_IMAGE_CAPTURE_CALLBACKS, callback)
+        fun setImageCapturedCallback(imageCaptureCallback: ImageCapturedCallback): Builder {
+            config.insertOption(OPTION_IMAGE_CAPTURED_CALLBACK, imageCaptureCallback)
+            return this
+        }
+
+        fun setImageSavedCallback(imageSavedCallback: ImageSavedCallback): Builder {
+            config.insertOption(OPTION_IMAGE_SAVED_CALLBACK, imageSavedCallback)
             return this
         }
 
@@ -51,17 +58,29 @@ class ImageCaptureUseCaseParameters private constructor(val config: Config) {
                 ExecutorService::class.java
             )
 
-        var OPTION_IMAGE_CAPTURE_CALLBACKS: Option<ImageCaptureCallbacks> =
-            CameraXOption.create(
-                "ognjenbogicevic.imageCapture.callback",
-                ImageCaptureCallbacks::class.java
+        var OPTION_IMAGE_CAPTURED_CALLBACK: Option<ImageCapturedCallback> =
+            CameraXOption.createNonMandatory(
+                "ognjenbogicevic.imageCapture.capture.callback",
+                ImageCapturedCallback::class.java
+            )
+
+        var OPTION_IMAGE_SAVED_CALLBACK: Option<ImageSavedCallback> =
+            CameraXOption.createNonMandatory(
+                "ognjenbogicevic.imageCapture.saved.callback",
+                ImageSavedCallback::class.java
             )
 
         var OPTION_IMAGE_CAPTURE_MODE: Option<Int> =
-            CameraXOption.createNonMandatory("ognjenbogicevic.imageCapture.captureMode", Int::class.java)
+            CameraXOption.createNonMandatory(
+                "ognjenbogicevic.imageCapture.captureMode",
+                Int::class.java
+            )
 
         var OPTION_IMAGE_CAPTURE_FLASH: Option<Int> =
-            CameraXOption.createNonMandatory("ognjenbogicevic.imageCapture.flashMode", Int::class.java)
+            CameraXOption.createNonMandatory(
+                "ognjenbogicevic.imageCapture.flashMode",
+                Int::class.java
+            )
     }
 }
 
@@ -90,7 +109,14 @@ internal class ImageCaptureUseCaseConfig : CameraXUseCaseConfig() {
                     OPTION_IMAGE_CAPTURE_EXECUTOR,
                     Executors.newSingleThreadExecutor()
                 )
-                defaultConfig.insertOption(OPTION_IMAGE_CAPTURE_CALLBACKS, null)
+                defaultConfig.insertOption(
+                    OPTION_IMAGE_CAPTURED_CALLBACK,
+                    null
+                )
+                defaultConfig.insertOption(
+                    OPTION_IMAGE_SAVED_CALLBACK,
+                    null
+                )
                 defaultConfig.insertOption(
                     ImageCaptureUseCaseParameters.OPTION_IMAGE_CAPTURE_FLASH,
                     ImageCapture.FLASH_MODE_OFF
@@ -106,8 +132,13 @@ internal class ImageCaptureUseCaseConfig : CameraXUseCaseConfig() {
     }
 }
 
-interface ImageCaptureCallbacks {
+interface ImageSavedCallback {
     fun onSuccess(uri: Uri)
+    fun onError(e: Exception)
+}
+
+interface ImageCapturedCallback {
+    fun onSuccess(image: ImageProxy)
     fun onError(e: Exception)
 }
 

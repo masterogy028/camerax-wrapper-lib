@@ -5,18 +5,13 @@ import android.media.MediaScannerConnection
 import android.net.Uri
 import android.util.Log
 import android.webkit.MimeTypeMap
-import androidx.camera.core.AspectRatio
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageCapture
-import androidx.camera.core.ImageCaptureException
-import com.dipl.cameraxlib.CameraXController
-import com.dipl.cameraxlib.CameraXExceptions
-import com.dipl.cameraxlib.createFile
-import com.dipl.cameraxlib.getDefaultOutputDirectory
-import com.dipl.cameraxlib.usecase.image_capture.ImageCaptureUseCaseParameters.Companion.OPTION_IMAGE_CAPTURE_CALLBACKS
+import androidx.camera.core.*
+import com.dipl.cameraxlib.*
+import com.dipl.cameraxlib.usecase.image_capture.ImageCaptureUseCaseParameters.Companion.OPTION_IMAGE_CAPTURED_CALLBACK
 import com.dipl.cameraxlib.usecase.image_capture.ImageCaptureUseCaseParameters.Companion.OPTION_IMAGE_CAPTURE_EXECUTOR
 import com.dipl.cameraxlib.usecase.image_capture.ImageCaptureUseCaseParameters.Companion.OPTION_IMAGE_CAPTURE_FLASH
 import com.dipl.cameraxlib.usecase.image_capture.ImageCaptureUseCaseParameters.Companion.OPTION_IMAGE_CAPTURE_MODE
+import com.dipl.cameraxlib.usecase.image_capture.ImageCaptureUseCaseParameters.Companion.OPTION_IMAGE_SAVED_CALLBACK
 import com.dipl.cameraxlib.usecase.preview.PreviewUseCaseParameters.Companion.OPTION_PREVIEW_LENS_FACING
 import java.io.File
 
@@ -48,20 +43,20 @@ class OBImageCapture(private val parameters: ImageCaptureUseCaseParameters) {
     /**
      * Control function that executes [ImageCapture] use case if it is bound to the lifecycle.
      *
-     * @throws [CameraXExceptions.ImageCaptureException]
+     * @param context used for directory and file resolving
+     * @param saveImageParams containing image file information
+     *
+     * @throws [OBImageCaptureException]
      */
-    fun takePicture(
-        fileName: String,
-        photoExtension: String,
-        context: Context,
-        outputDirectory: File = context.getDefaultOutputDirectory(),
-    ) {
-        if (!this::isCameraAvailable.isInitialized || !isCameraAvailable()) {
-            throw CameraXExceptions.ImageCaptureException("The camera is not available to this OBImageCapture use case.\nThe camera needs to be started by the controller.")
-        }
+    fun captureAndSaveImage(context: Context, saveImageParams: SaveImageParams) {
+        checkCameraAvailability()
 
         // Create output file to hold the image
-        val photoFile = createFile(outputDirectory, fileName, photoExtension)
+        val photoFile = createFile(
+            saveImageParams.outputDirectory ?: context.getDefaultOutputDirectory(),
+            saveImageParams.fileName,
+            saveImageParams.photoExtension
+        )
 
         // Setup image capture metadata
         val metadata = ImageCapture.Metadata().apply {
@@ -76,17 +71,10 @@ class OBImageCapture(private val parameters: ImageCaptureUseCaseParameters) {
             .setMetadata(metadata)
             .build()
 
-        // Setup image capture listener which is triggered after photo has been taken
         useCase.takePicture(
             outputOptions,
             parameters[OPTION_IMAGE_CAPTURE_EXECUTOR]!!,
             object : ImageCapture.OnImageSavedCallback {
-                override fun onError(exc: ImageCaptureException) {
-                    Log.e(CameraXController.TAG, "Photo capture failed: ${exc.message}", exc)
-                    parameters[OPTION_IMAGE_CAPTURE_CALLBACKS]!!
-                        .onError(exc)
-                }
-
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                     val savedUri = output.savedUri ?: Uri.fromFile(photoFile)
                     Log.d(CameraXController.TAG, "Photo capture succeeded: $savedUri")
@@ -101,14 +89,58 @@ class OBImageCapture(private val parameters: ImageCaptureUseCaseParameters) {
                         arrayOf(File(savedUri.path).absolutePath),
                         arrayOf(mimeType)
                     ) { _, uri ->
-                        Log.d(CameraXController.TAG, "Image capture scanned into media store: $uri")
-                        parameters[OPTION_IMAGE_CAPTURE_CALLBACKS]!!
-                            .onSuccess(uri)
+                        Log.d(
+                            CameraXController.TAG,
+                            "Image capture scanned into media store: $uri"
+                        )
+                        (parameters[OPTION_IMAGE_SAVED_CALLBACK]!!).onSuccess(uri)
                     }
+                }
+
+                override fun onError(exception: ImageCaptureException) {
+                    (parameters[OPTION_IMAGE_SAVED_CALLBACK]!!).onError(exception)
                 }
             })
     }
+
+    /**
+     * Control function that executes [ImageCapture] use case if it is bound to the lifecycle.
+     * Makes [ImageCapture.takePicture] call that captures a new still image for in memory access.
+     * Calls [ImageCapturedCallback.onSuccess] if capture was successful, else it makes [ImageCapturedCallback.onError]
+     * call to a [OPTION_IMAGE_CAPTURED_CALLBACK] preset parameter.
+     *
+     * @throws [OBImageCaptureException]
+     */
+    fun captureImage() {
+        checkCameraAvailability()
+
+        useCase.takePicture(
+            parameters[OPTION_IMAGE_CAPTURE_EXECUTOR]!!,
+            object : ImageCapture.OnImageCapturedCallback() {
+                override fun onCaptureSuccess(image: ImageProxy) {
+                    super.onCaptureSuccess(image)
+                    (parameters[OPTION_IMAGE_CAPTURED_CALLBACK]!!).onSuccess(image)
+                }
+
+                override fun onError(exception: ImageCaptureException) {
+                    super.onError(exception)
+                    (parameters[OPTION_IMAGE_CAPTURED_CALLBACK]!!).onError(exception)
+                }
+            })
+    }
+
+    private fun checkCameraAvailability() {
+        if (!this::isCameraAvailable.isInitialized || !isCameraAvailable()) {
+            throw OBImageCaptureException("The camera is not available to this OBImageCapture use case.\nThe camera needs to be started by the controller.")
+        }
+    }
 }
+
+data class SaveImageParams(
+    val fileName: String,
+    val photoExtension: String,
+    val outputDirectory: File? = null,
+)
 
 inline fun createOBImageCapture(
     buildImageCaptureUseCaseParameters: ImageCaptureUseCaseParameters.Builder.() -> Unit

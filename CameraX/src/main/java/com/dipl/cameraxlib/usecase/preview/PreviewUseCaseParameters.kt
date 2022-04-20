@@ -1,6 +1,7 @@
 package com.dipl.cameraxlib.usecase.preview
 
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.impl.ImageOutputConfig
 import androidx.camera.view.PreviewView
 import com.dipl.cameraxlib.MissingMandatoryConfigParameterException
 import com.dipl.cameraxlib.config.CameraXUseCaseConfig
@@ -9,6 +10,7 @@ import com.dipl.cameraxlib.config.Config
 import com.dipl.cameraxlib.config.Option
 import com.dipl.cameraxlib.usecase.preview.PreviewUseCaseParameters.Companion.OPTION_PREVIEW_LENS_FACING
 import com.dipl.cameraxlib.usecase.preview.PreviewUseCaseParameters.Companion.OPTION_PREVIEW_VIEW
+import com.dipl.cameraxlib.usecase.preview.PreviewUseCaseParameters.Companion.OPTION_ROTATION
 
 class PreviewUseCaseParameters private constructor(val config: Config) {
 
@@ -17,6 +19,11 @@ class PreviewUseCaseParameters private constructor(val config: Config) {
 
         fun setLensFacing(@CameraSelector.LensFacing lensFacing: Int): Builder {
             config.insertOption(OPTION_PREVIEW_LENS_FACING, lensFacing)
+            return this
+        }
+
+        fun setRotation(@ImageOutputConfig.RotationValue rotation: Int): Builder {
+            config.insertOption(OPTION_ROTATION, rotation)
             return this
         }
 
@@ -38,6 +45,9 @@ class PreviewUseCaseParameters private constructor(val config: Config) {
 
         var OPTION_PREVIEW_LENS_FACING: Option<Int> =
             CameraXOption.createNonMandatory("ognjenbogicevic.preview.lensFacing", Int::class.java)
+
+        var OPTION_ROTATION: Option<Int> =
+            CameraXOption.createNonMandatory("ognjenbogicevic.preview.rotation", Int::class.java)
 
     }
 }
@@ -64,6 +74,7 @@ internal class PreviewUseCaseConfig : CameraXUseCaseConfig() {
                 val defaultConfig = PreviewUseCaseConfig()
 
                 defaultConfig.insertOption(OPTION_PREVIEW_VIEW, null)
+                defaultConfig.insertOption(OPTION_ROTATION, null)
                 defaultConfig.insertOption(
                     OPTION_PREVIEW_LENS_FACING,
                     CameraSelector.LENS_FACING_BACK

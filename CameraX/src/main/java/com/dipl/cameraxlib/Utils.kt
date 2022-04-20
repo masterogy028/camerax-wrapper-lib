@@ -152,10 +152,10 @@ fun Bitmap.crop(
         )
     } catch (e: Exception) {
         e.printStackTrace()
-        throw CameraXExceptions.PictureAnalyzeException(
+        throw OBPictureAnalyzeException(
             "Cropping the analyze area failed! " +
                     "Check the validity of forwarded parameters and " +
-                    "avoid using crop if you do not work with preview overlay!"
+                    "avoid using crop if you do not work with preview overlay!", e
         )
     }
 }

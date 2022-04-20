@@ -2,16 +2,16 @@ package com.dipl.cameraxlib
 
 import com.dipl.cameraxlib.config.Option
 
-sealed class CameraXExceptions(private val error: String) : Exception() {
-    class PictureAnalyzeException(e: String) : CameraXExceptions(e)
-    class ImageCaptureException(e: String) : CameraXExceptions(e)
-    class IOException(e: String) : CameraXExceptions(e)
-    class DefaultException(e: String) : CameraXExceptions(e)
-
+sealed class CameraXExceptions(private val error: String, val throwable: Throwable?) : Exception() {
     override fun toString(): String {
         return super.toString() + "\nMessage: " + error
     }
 }
+
+class OBPictureAnalyzeException(e: String, throwable: Throwable? = null) : CameraXExceptions(e, throwable)
+class OBImageCaptureException(e: String, throwable: Throwable? = null) : CameraXExceptions(e, throwable)
+class IOException(e: String, throwable: Throwable? = null) : CameraXExceptions(e, throwable)
+class OBDefaultException(e: String, throwable: Throwable? = null) : CameraXExceptions(e, throwable)
 
 /**
  * [MissingMandatoryConfigParameterException] displays error message about missing mandatory configuration parameter.

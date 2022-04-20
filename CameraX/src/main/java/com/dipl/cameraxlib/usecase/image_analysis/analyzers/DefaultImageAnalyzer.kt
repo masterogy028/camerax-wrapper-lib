@@ -4,10 +4,7 @@ import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
-import com.dipl.cameraxlib.CameraXExceptions
-import com.dipl.cameraxlib.crop
-import com.dipl.cameraxlib.rotate
-import com.dipl.cameraxlib.toBitmap
+import com.dipl.cameraxlib.*
 import com.dipl.cameraxlib.usecase.image_analysis.ImageCrop
 
 open class DefaultImageAnalyzer(
@@ -64,10 +61,9 @@ fun Bitmap.crop(imageCrop: ImageCrop?): Bitmap {
                 }
             }
         return croppedBitmap
-        // parameters[AnalyzeUseCaseParameters.OPTION_ANALYZE_CALLBACK]!!.analyze(croppedBitmap)
     } catch (e: NullPointerException) {
         e.printStackTrace()
-        throw CameraXExceptions.IOException("PreviewView might not be initialized!")
+        throw IOException("PreviewView might not be initialized!", e)
     }
 }
 

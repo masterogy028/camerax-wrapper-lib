@@ -2,7 +2,6 @@ package com.dipl.camerax
 
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -14,6 +13,8 @@ import androidx.core.view.drawToBitmap
 import androidx.navigation.fragment.findNavController
 import com.dipl.camerax.databinding.FragmentCameraXSummaryBinding
 import com.dipl.camerax.utils.*
+import com.dipl.camerax.utils.callbacks.ImageCaptureCallbackImpl
+import com.dipl.camerax.utils.callbacks.ImageSavedCallbackImpl
 import com.dipl.camerax.utils.scanning_components.AnalyzeComponent
 import com.dipl.cameraxlib.CameraXController
 import com.dipl.cameraxlib.usecase.image_analysis.AnalyzeImageListener
@@ -23,8 +24,8 @@ import com.dipl.cameraxlib.usecase.image_analysis.analyzers.BarcodeScannerResult
 import com.dipl.cameraxlib.usecase.image_analysis.analyzers.FaceRecognitionScannerResultListener
 import com.dipl.cameraxlib.usecase.image_analysis.analyzers.QRScannerResultListener
 import com.dipl.cameraxlib.usecase.image_analysis.createOBImageAnalysis
-import com.dipl.cameraxlib.usecase.image_capture.ImageCaptureCallbacks
 import com.dipl.cameraxlib.usecase.image_capture.OBImageCapture
+import com.dipl.cameraxlib.usecase.image_capture.SaveImageParams
 import com.dipl.cameraxlib.usecase.image_capture.createOBImageCapture
 import com.dipl.cameraxlib.usecase.preview.createOBPreview
 import com.google.mlkit.vision.face.Face
@@ -70,12 +71,14 @@ class CameraXSummaryFragment :
         viewBinding.tvScannerMode.text =
             getString(R.string.current_mode, scanType.toString())
         viewBinding.btnTakePicture.setOnClickListener {
-            obImageCapture.takePicture(
-                "cameraX_dipl${System.currentTimeMillis()}",
-                ".jpg",
+            obImageCapture.captureAndSaveImage(
                 requireContext(),
-                requireContext().getOutputDirectory()
+                SaveImageParams(
+                    "cameraX_dipl${System.currentTimeMillis()}",
+                    ".jpg",
+                    requireContext().getOutputDirectory()
                 )
+            )
         }
         viewBinding.btnSwapCamera.setOnClickListener {
             lensFacing =
@@ -182,7 +185,8 @@ class CameraXSummaryFragment :
         obImageCapture = createOBImageCapture {
             setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY) // ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY
             setFlashMode(ImageCapture.FLASH_MODE_OFF) // ImageCapture.FLASH_MODE_ON
-            setImageCaptureCallback(ImageCaptureCallbacksImpl)
+            setImageSavedCallback(ImageSavedCallbackImpl)
+            setImageCapturedCallback(ImageCaptureCallbackImpl)
         }
 
         CameraXController.getControllerForParameters(
@@ -196,16 +200,5 @@ class CameraXSummaryFragment :
 
     companion object {
         const val TAG = "CameraXPreviewTAG"
-    }
-
-    object ImageCaptureCallbacksImpl : ImageCaptureCallbacks {
-        override fun onSuccess(uri: Uri) {
-            Log.d("ImageCaptureSuccess", "onSuccess: ${uri.path}")
-        }
-
-        override fun onError(e: Exception) {
-            Log.d("ImageCaptureError", "onError: $e")
-            e.printStackTrace()
-        }
     }
 }
