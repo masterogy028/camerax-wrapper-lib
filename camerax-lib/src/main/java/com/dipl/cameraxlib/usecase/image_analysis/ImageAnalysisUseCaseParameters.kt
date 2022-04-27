@@ -7,21 +7,21 @@ import com.dipl.cameraxlib.config.CameraXOption
 import com.dipl.cameraxlib.config.CameraXUseCaseConfig
 import com.dipl.cameraxlib.config.Config
 import com.dipl.cameraxlib.config.Option
-import com.dipl.cameraxlib.usecase.image_analysis.AnalyzeUseCaseParameters.Companion.OPTION_ANALYZE_BACKPRESSURE_STRATEGY
-import com.dipl.cameraxlib.usecase.image_analysis.AnalyzeUseCaseParameters.Companion.OPTION_ANALYZE_CALLBACK
-import com.dipl.cameraxlib.usecase.image_analysis.AnalyzeUseCaseParameters.Companion.OPTION_ANALYZE_EXECUTOR
-import com.dipl.cameraxlib.usecase.image_analysis.AnalyzeUseCaseParameters.Companion.OPTION_ANALYZE_INTERVAL
-import com.dipl.cameraxlib.usecase.image_analysis.AnalyzeUseCaseParameters.Companion.OPTION_CROP_ANALYZE_AREA
-import com.dipl.cameraxlib.usecase.image_analysis.AnalyzeUseCaseParameters.Companion.OPTION_SCANNER_TYPE
+import com.dipl.cameraxlib.usecase.image_analysis.ImageAnalysisUseCaseParameters.Companion.OPTION_ANALYZE_BACKPRESSURE_STRATEGY
+import com.dipl.cameraxlib.usecase.image_analysis.ImageAnalysisUseCaseParameters.Companion.OPTION_ANALYZE_CALLBACK
+import com.dipl.cameraxlib.usecase.image_analysis.ImageAnalysisUseCaseParameters.Companion.OPTION_ANALYZE_EXECUTOR
+import com.dipl.cameraxlib.usecase.image_analysis.ImageAnalysisUseCaseParameters.Companion.OPTION_ANALYZE_INTERVAL
+import com.dipl.cameraxlib.usecase.image_analysis.ImageAnalysisUseCaseParameters.Companion.OPTION_CROP_ANALYZE_AREA
+import com.dipl.cameraxlib.usecase.image_analysis.ImageAnalysisUseCaseParameters.Companion.OPTION_SCANNER_TYPE
 import com.dipl.cameraxlib.usecase.image_analysis.models.ImageCrop
 import com.dipl.cameraxlib.usecase.image_analysis.models.OBScannerType
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-class AnalyzeUseCaseParameters private constructor(val config: Config) {
+class ImageAnalysisUseCaseParameters private constructor(val config: Config) {
 
     class Builder {
-        private val config: Config = AnalyzeImageUseCaseConfig()
+        private val config: Config = ImageAnalysisUseCaseConfig()
 
         fun setCropAnalyzeArea(cropAnalyzeArea: ImageCrop): Builder {
             config.insertOption(OPTION_CROP_ANALYZE_AREA, cropAnalyzeArea)
@@ -53,9 +53,9 @@ class AnalyzeUseCaseParameters private constructor(val config: Config) {
             return this
         }
 
-        fun build(): AnalyzeUseCaseParameters {
+        fun build(): ImageAnalysisUseCaseParameters {
             config.mergeWithDefaults()
-            return AnalyzeUseCaseParameters(config)
+            return ImageAnalysisUseCaseParameters(config)
         }
     }
 
@@ -99,7 +99,7 @@ class AnalyzeUseCaseParameters private constructor(val config: Config) {
     }
 }
 
-internal class AnalyzeImageUseCaseConfig : CameraXUseCaseConfig() {
+internal class ImageAnalysisUseCaseConfig : CameraXUseCaseConfig() {
 
     override fun buildDefaultConfig(): Config {
         return Defaults.build()
@@ -118,7 +118,7 @@ internal class AnalyzeImageUseCaseConfig : CameraXUseCaseConfig() {
     private class Defaults {
         companion object {
             internal fun build(): Config {
-                val analyzeImageUseCaseConfig = AnalyzeImageUseCaseConfig()
+                val analyzeImageUseCaseConfig = ImageAnalysisUseCaseConfig()
 
                 analyzeImageUseCaseConfig.insertOption(OPTION_CROP_ANALYZE_AREA, null)
                 analyzeImageUseCaseConfig.insertOption(OPTION_ANALYZE_INTERVAL, null)
@@ -146,6 +146,6 @@ interface AnalyzeImageListener {
     fun analyze(image: Bitmap)
 }
 
-operator fun <T> AnalyzeUseCaseParameters.get(option: Option<T>): T? {
+operator fun <T> ImageAnalysisUseCaseParameters.get(option: Option<T>): T? {
     return config.getOptionValue(option)
 }
