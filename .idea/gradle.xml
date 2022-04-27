@@ -11,7 +11,7 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/CameraX" />
+            <option value="$PROJECT_DIR$/camerax-lib" />
             <option value="$PROJECT_DIR$/demoApp" />
           </set>
         </option>
