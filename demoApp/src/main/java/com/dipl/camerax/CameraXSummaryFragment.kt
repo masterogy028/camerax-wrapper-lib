@@ -18,12 +18,12 @@ import com.dipl.camerax.utils.callbacks.ImageSavedCallbackImpl
 import com.dipl.camerax.utils.scanning_components.AnalyzeComponent
 import com.dipl.cameraxlib.CameraXController
 import com.dipl.cameraxlib.usecase.image_analysis.AnalyzeImageListener
-import com.dipl.cameraxlib.usecase.image_analysis.ImageCrop
-import com.dipl.cameraxlib.usecase.image_analysis.OBScannerType
 import com.dipl.cameraxlib.usecase.image_analysis.analyzers.BarcodeScannerResultListener
 import com.dipl.cameraxlib.usecase.image_analysis.analyzers.FaceRecognitionScannerResultListener
 import com.dipl.cameraxlib.usecase.image_analysis.analyzers.QRScannerResultListener
 import com.dipl.cameraxlib.usecase.image_analysis.createOBImageAnalysis
+import com.dipl.cameraxlib.usecase.image_analysis.models.ImageCrop
+import com.dipl.cameraxlib.usecase.image_analysis.models.OBScannerType
 import com.dipl.cameraxlib.usecase.image_capture.OBImageCapture
 import com.dipl.cameraxlib.usecase.image_capture.SaveImageParams
 import com.dipl.cameraxlib.usecase.image_capture.createOBImageCapture

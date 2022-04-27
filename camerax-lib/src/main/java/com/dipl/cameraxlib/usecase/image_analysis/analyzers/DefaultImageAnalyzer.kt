@@ -5,13 +5,20 @@ import android.graphics.Bitmap
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import com.dipl.cameraxlib.*
-import com.dipl.cameraxlib.usecase.image_analysis.ImageCrop
+import com.dipl.cameraxlib.usecase.image_analysis.models.ImageCrop
 
+/**
+ * [DefaultImageAnalyzer] is class which is used to convert image from YUV_420_888 format to bitmap,
+ * performs crop it if needed,
+ * and call callback with it.
+ */
 open class DefaultImageAnalyzer(
     private val imageCrop: ImageCrop?,
     private val analyzeImageBitmap: AnalyzeImageLambda = {},
+    analyzeInterval: Long? = DEFAULT_ANALYZE_INTERVAL
 ) : ImageAnalysis.Analyzer {
 
+    private val analyzeInterval = analyzeInterval ?: DEFAULT_ANALYZE_INTERVAL
     private var lastAnalyzedTimestamp = 0L
     protected var lastAnalyzedFrame: Bitmap? = null
     protected var freshData: Boolean = false
@@ -19,7 +26,7 @@ open class DefaultImageAnalyzer(
     @SuppressLint("UnsafeExperimentalUsageError")
     override fun analyze(image: ImageProxy) {
         val currentTimestamp = System.currentTimeMillis()
-        if (currentTimestamp - lastAnalyzedTimestamp >= 200) {
+        if (currentTimestamp - lastAnalyzedTimestamp >= analyzeInterval) {
 
             image.image?.let {
 
@@ -36,6 +43,10 @@ open class DefaultImageAnalyzer(
             lastAnalyzedTimestamp = currentTimestamp
         }
         image.close()
+    }
+
+    companion object {
+        private const val DEFAULT_ANALYZE_INTERVAL = 200L
     }
 }
 

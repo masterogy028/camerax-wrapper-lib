@@ -1,7 +1,7 @@
 package com.dipl.cameraxlib.usecase.image_analysis.analyzers
 
 import androidx.camera.core.ImageProxy
-import com.dipl.cameraxlib.usecase.image_analysis.ImageCrop
+import com.dipl.cameraxlib.usecase.image_analysis.models.ImageCrop
 import com.google.mlkit.vision.barcode.Barcode
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
@@ -11,7 +11,8 @@ class QRScanner(
     private val registeredResultListener: QRScannerResultListener,
     imageCrop: ImageCrop?,
     analyzeImageBitmap: AnalyzeImageLambda = {},
-) : DefaultImageAnalyzer(imageCrop, analyzeImageBitmap) {
+    analyzeInterval: Long?
+) : DefaultImageAnalyzer(imageCrop, analyzeImageBitmap, analyzeInterval) {
 
     private val options = BarcodeScannerOptions.Builder()
         .setBarcodeFormats(

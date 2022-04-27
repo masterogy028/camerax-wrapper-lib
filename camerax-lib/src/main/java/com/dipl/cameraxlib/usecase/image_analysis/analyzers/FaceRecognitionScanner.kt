@@ -2,7 +2,7 @@ package com.dipl.cameraxlib.usecase.image_analysis.analyzers
 
 import android.graphics.Bitmap
 import androidx.camera.core.ImageProxy
-import com.dipl.cameraxlib.usecase.image_analysis.ImageCrop
+import com.dipl.cameraxlib.usecase.image_analysis.models.ImageCrop
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.Face
 import com.google.mlkit.vision.face.FaceDetection
@@ -11,8 +11,9 @@ import com.google.mlkit.vision.face.FaceDetectorOptions
 class FaceRecognitionScanner(
     private val registeredResultListener: FaceRecognitionScannerResultListener,
     imageCrop: ImageCrop?,
-    analyzeImageBitmap: AnalyzeImageLambda = {}
-) : DefaultImageAnalyzer(imageCrop, analyzeImageBitmap) {
+    analyzeImageBitmap: AnalyzeImageLambda = {},
+    analyzeInterval: Long?
+) : DefaultImageAnalyzer(imageCrop, analyzeImageBitmap, analyzeInterval) {
 
     // High-accuracy landmark detection and face classification
     private val highAccuracyOpts = FaceDetectorOptions.Builder()
