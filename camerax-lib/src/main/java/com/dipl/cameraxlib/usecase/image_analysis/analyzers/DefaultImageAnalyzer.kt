@@ -62,7 +62,7 @@ fun Bitmap.crop(imageCrop: ImageCrop?): Bitmap {
         val croppedBitmap: Bitmap =
             imageCrop.let {
                 if (it != null) {
-                    crop(
+                    crop_internal(
                         it.aspectRatio,
                         it.widthRatio,
                         it.heightRatio

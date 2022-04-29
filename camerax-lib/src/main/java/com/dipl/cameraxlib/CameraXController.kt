@@ -29,7 +29,7 @@ abstract class CameraXController protected constructor(
      *
      * The function should be called every time the configuration changes.
      *
-     * @throws [CameraXExceptions.DefaultException] in case of binding failure.
+     * @throws [OBDefaultException] in case of binding failure.
      */
     protected abstract fun updateCameraState()
 

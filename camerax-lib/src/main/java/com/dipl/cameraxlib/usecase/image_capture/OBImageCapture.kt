@@ -7,6 +7,7 @@ import android.util.Log
 import android.webkit.MimeTypeMap
 import androidx.camera.core.*
 import com.dipl.cameraxlib.*
+import com.dipl.cameraxlib.usecase.OBUseCase
 import com.dipl.cameraxlib.usecase.image_capture.ImageCaptureUseCaseParameters.Companion.OPTION_IMAGE_CAPTURED_CALLBACK
 import com.dipl.cameraxlib.usecase.image_capture.ImageCaptureUseCaseParameters.Companion.OPTION_IMAGE_CAPTURE_EXECUTOR
 import com.dipl.cameraxlib.usecase.image_capture.ImageCaptureUseCaseParameters.Companion.OPTION_IMAGE_CAPTURE_FLASH
@@ -15,16 +16,14 @@ import com.dipl.cameraxlib.usecase.image_capture.ImageCaptureUseCaseParameters.C
 import com.dipl.cameraxlib.usecase.preview.PreviewUseCaseParameters.Companion.OPTION_PREVIEW_LENS_FACING
 import java.io.File
 
-class OBImageCapture(private val parameters: ImageCaptureUseCaseParameters) {
-    lateinit var useCase: ImageCapture
-    private var screenAspectRatio = AspectRatio.RATIO_16_9
-    private var rotation: Int = 0
+class OBImageCapture(private val parameters: ImageCaptureUseCaseParameters): OBUseCase() {
+    private val imageCaptureUseCase by lazy { useCase as ImageCapture }
     private lateinit var isCameraAvailable: () -> Boolean
 
-    fun build(screenAspectRatio: Int? = null, rotation: Int? = null) {
+    override fun build(pScreenAspectRatio: Int?, pRotation: Int?) {
 
-        screenAspectRatio?.let { this.screenAspectRatio = it }
-        rotation?.let { this.rotation = it }
+        pScreenAspectRatio?.let { this.screenAspectRatio = it }
+        pRotation?.let { this.rotation = it }
 
         ImageCapture.Builder()
             .setCaptureMode(parameters[OPTION_IMAGE_CAPTURE_MODE]!!)
@@ -71,7 +70,7 @@ class OBImageCapture(private val parameters: ImageCaptureUseCaseParameters) {
             .setMetadata(metadata)
             .build()
 
-        useCase.takePicture(
+        imageCaptureUseCase.takePicture(
             outputOptions,
             parameters[OPTION_IMAGE_CAPTURE_EXECUTOR]!!,
             object : ImageCapture.OnImageSavedCallback {
@@ -114,7 +113,7 @@ class OBImageCapture(private val parameters: ImageCaptureUseCaseParameters) {
     fun captureImage() {
         checkCameraAvailability()
 
-        useCase.takePicture(
+        imageCaptureUseCase.takePicture(
             parameters[OPTION_IMAGE_CAPTURE_EXECUTOR]!!,
             object : ImageCapture.OnImageCapturedCallback() {
                 override fun onCaptureSuccess(image: ImageProxy) {

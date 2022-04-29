@@ -5,6 +5,7 @@ import android.view.View
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
+import com.dipl.cameraxlib.usecase.OBUseCase
 import com.dipl.cameraxlib.usecase.preview.PreviewUseCaseParameters.Companion.OPTION_PREVIEW_LENS_FACING
 import com.dipl.cameraxlib.usecase.preview.PreviewUseCaseParameters.Companion.OPTION_PREVIEW_VIEW
 import com.dipl.cameraxlib.usecase.preview.PreviewUseCaseParameters.Companion.OPTION_ROTATION
@@ -12,17 +13,14 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-class OBPreview(private val parameters: PreviewUseCaseParameters) {
-    lateinit var useCase: Preview
-    private var screenAspectRatio = AspectRatio.RATIO_16_9
-    private var rotation: Int = 0
+class OBPreview(private val parameters: PreviewUseCaseParameters) : OBUseCase() {
     internal val lensFacing =
         parameters[OPTION_PREVIEW_LENS_FACING] ?: CameraSelector.LENS_FACING_BACK
 
     val cameraSelector =
         CameraSelector.Builder().requireLensFacing(lensFacing).build()
 
-    fun build() {
+    override fun build(pScreenAspectRatio: Int?, pRotation: Int?) {
         with(parameters[OPTION_PREVIEW_VIEW]!!) {
             val metrics = DisplayMetrics().also {
                 display.getRealMetrics(it)
@@ -36,7 +34,7 @@ class OBPreview(private val parameters: PreviewUseCaseParameters) {
             .setTargetRotation(rotation)
             .build()
         with(parameters[OPTION_PREVIEW_VIEW]!!) {
-            useCase.setSurfaceProvider(this.surfaceProvider)
+            (useCase as Preview).setSurfaceProvider(this.surfaceProvider)
             this.implementationMode = androidx.camera.view.PreviewView.ImplementationMode.COMPATIBLE
         }
     }
@@ -52,10 +50,10 @@ class OBPreview(private val parameters: PreviewUseCaseParameters) {
     fun getPreviewView(): View =
         parameters[OPTION_PREVIEW_VIEW]!!
 
-    fun getAspectRation(): Int =
+    fun getAspectRatio(): Int =
         screenAspectRatio
 
-    fun getRotation(): Int =
+    fun getCurrentRotation(): Int =
         rotation
 
     companion object {

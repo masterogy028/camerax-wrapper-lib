@@ -1,7 +1,7 @@
 package com.dipl.cameraxlib.usecase.image_analysis
 
-import androidx.camera.core.AspectRatio
 import androidx.camera.core.ImageAnalysis
+import com.dipl.cameraxlib.usecase.OBUseCase
 import com.dipl.cameraxlib.usecase.image_analysis.ImageAnalysisUseCaseParameters.Companion.OPTION_ANALYZE_BACKPRESSURE_STRATEGY
 import com.dipl.cameraxlib.usecase.image_analysis.ImageAnalysisUseCaseParameters.Companion.OPTION_ANALYZE_CALLBACK
 import com.dipl.cameraxlib.usecase.image_analysis.ImageAnalysisUseCaseParameters.Companion.OPTION_ANALYZE_EXECUTOR
@@ -10,11 +10,7 @@ import com.dipl.cameraxlib.usecase.image_analysis.ImageAnalysisUseCaseParameters
 import com.dipl.cameraxlib.usecase.image_analysis.ImageAnalysisUseCaseParameters.Companion.OPTION_SCANNER_TYPE
 import com.dipl.cameraxlib.usecase.image_analysis.models.getAnalyzer
 
-class OBImageAnalysis(private val parameters: ImageAnalysisUseCaseParameters) {
-
-    lateinit var useCase: ImageAnalysis
-    private var screenAspectRatio: Int = AspectRatio.RATIO_16_9
-    private var rotation: Int = 0
+class OBImageAnalysis(private val parameters: ImageAnalysisUseCaseParameters) : OBUseCase() {
 
     private val imageAnalyzer = parameters[OPTION_SCANNER_TYPE]!!.getAnalyzer(
         imageCrop = parameters[OPTION_CROP_ANALYZE_AREA],
@@ -22,10 +18,10 @@ class OBImageAnalysis(private val parameters: ImageAnalysisUseCaseParameters) {
         analyzeInterval = parameters[OPTION_ANALYZE_INTERVAL]
     )
 
-    fun build(screenAspectRatio: Int? = null, rotation: Int? = null) {
+    override fun build(pScreenAspectRatio: Int?, pRotation: Int?) {
 
-        screenAspectRatio?.let { this.screenAspectRatio = it }
-        rotation?.let { this.rotation = it }
+        pScreenAspectRatio?.let { this.screenAspectRatio = it }
+        pRotation?.let { this.rotation = it }
 
         useCase = ImageAnalysis.Builder()
             .setTargetAspectRatio(this.screenAspectRatio)

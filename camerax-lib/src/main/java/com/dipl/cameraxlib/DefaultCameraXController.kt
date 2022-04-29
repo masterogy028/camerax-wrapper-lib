@@ -25,8 +25,8 @@ class DefaultCameraXController private constructor(
         obPreview.build()
 
         // ImageAnalysis and ImageCapture use cases are optional
-        obImageAnalysis?.build(obPreview.getAspectRation(), obPreview.getRotation())
-        obImageCapture?.build(obPreview.getAspectRation(), obPreview.getRotation())
+        obImageAnalysis?.build(obPreview.getAspectRatio(), obPreview.getCurrentRotation())
+        obImageCapture?.build(obPreview.getAspectRatio(), obPreview.getCurrentRotation())
 
         // setting the function that checks camera's availability
         obImageCapture?.setCameraAvailabilityChecker { isCameraAvailable(obPreview.lensFacing.toPackageManagerCameraFeature()) }

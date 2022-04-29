@@ -128,7 +128,7 @@ fun Bitmap.rotate(degrees: Int): Bitmap {
     return bitmap
 }
 
-fun Bitmap.crop(
+internal fun Bitmap.crop_internal(
     decorationAspectRatio: Float,
     decorationWidthRatio: Float,
     decorationHeightRatio: Float,
