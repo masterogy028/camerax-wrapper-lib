@@ -1,9 +1,8 @@
 package com.dipl.cameraxlib
 
 import android.content.Context
-import android.util.Log
-import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
@@ -18,16 +17,34 @@ abstract class CameraXController protected constructor(
     protected val obImageAnalysis: OBImageAnalysis? = null,
     protected val obImageCapture: OBImageCapture? = null
 ) {
+    private val lifecycleAwareController: LifecycleAwareController =
+        LifecycleAwareController(lifecycleOwner)
 
-    private var cameraState: CameraXState = CameraXState.CREATED
-
-    protected var camera: Camera? = null
     protected var cameraProvider: ProcessCameraProvider? = null
 
     /**
-     * The function initializes cameraX with selected use cases.
+     * Control function that starts camerax use cases.
+     */
+    fun start() {
+        lifecycleAwareController.start(
+            targetPreviewView = obPreview.getPreviewView(),
+            updateCameraStateCallback = { updateCameraState() }
+        )
+    }
+
+    /**
+     * Stops camerax use cases by unbinding them.
+     */
+    fun stop() {
+        cameraProvider?.unbindAll()
+        cameraProvider = null
+        lifecycleAwareController.stop()
+    }
+
+    /**
+     * The function initializes camerax with selected use cases.
      *
-     * The function should be called every time the configuration changes.
+     * The function should be called every time the device configuration changes.
      *
      * @throws [OBDefaultException] in case of binding failure.
      */
@@ -38,89 +55,19 @@ abstract class CameraXController protected constructor(
      *
      * @return true is the camera is started; false otherwise.
      */
-    open fun isCameraAvailable(hardwareCameraFeature: String): Boolean =
-        (cameraState == CameraXState.STARTED) &&
-                context.packageManager.hasSystemFeature(hardwareCameraFeature)
-
-    /**
-     * If the start method is called after the controller creation the
-     * observer will be registered else it starts the camera with binding
-     * the use cases to the lifecycleOwner.
-     */
-    fun start() {
-
-        // Registers the lifecycle observer.
-        if (cameraState == CameraXState.CREATED) {
-            Log.d(TAG, "bindObserver: //////")
-
-            lifecycleOwner.lifecycle.addObserver(object : LifecycleEventObserver {
-                override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
-                    when (event) {
-                        // If the preview use case is used then we post the call to updateCameraState()
-                        // else we just call updateCameraState() because there is no waiting for UI components to be initialized
-                        Lifecycle.Event.ON_RESUME -> if (obPreview?.getPreviewView()
-                                ?.post { start() } == null
-                        )
-                            start()
-                        Lifecycle.Event.ON_PAUSE -> stop()
-                        Lifecycle.Event.ON_DESTROY -> close()
-                        else -> return
-                    }
-                }
-            })
-        } else {
-            if (cameraState == CameraXState.CLOSED) {
-                throw OBDefaultException(
-                    "The camera controller is closed!" +
-                            "\nYou might be using the same controller in multiple fragments/activities."
-                )
-            }
-            Log.d(TAG, "start: //////")
-            updateCameraState()
-        }
-
-        cameraState = CameraXState.STARTED
-    }
-
-    /**
-     * Stops the camera with unbinding currently bound use cases and sets the properties to null
-     * as they are not going to be used again before calling [start].
-     */
-    open fun stop() {
-        Log.d(TAG, "stop: //////")
-        if (cameraState == CameraXState.CLOSED) {
-            throw OBDefaultException(
-                "The camera controller is closed!" +
-                        "\nYou might be using the same controller in multiple fragments/activities."
+    internal fun isCameraAvailable(hardwareCameraFeature: String): Boolean =
+        lifecycleAwareController.isCameraAvailable {
+            context.packageManager.hasSystemFeature(
+                hardwareCameraFeature
             )
         }
-        cameraProvider?.unbindAll()
-        cameraProvider = null
-        camera = null
-        cameraState = CameraXState.STOPPED
-    }
-
-    /**
-     * Control function that stops the controller and sets the [cameraState] to CameraXState.CLOSED,
-     * preventing further controller actions.
-     */
-    protected open fun close() {
-        Log.d(TAG, "close: //////")
-        if (cameraState == CameraXState.CLOSED) {
-            throw OBDefaultException("The camera controller is already closed!")
-        }
-        stop()
-        cameraState = CameraXState.CLOSED
-    }
 
     companion object {
 
         const val TAG = "CameraXController"
 
         /**
-         * Gets the instance for @param[useCaseParameters].
-         *
-         * Depending on the parameters, the appropriate controller will be instantiated.
+         * Function that will instantiate the appropriate controller depending on the provided parameters.
          *
          * @return [CameraXController] instance.
          */
@@ -131,7 +78,7 @@ abstract class CameraXController protected constructor(
             obImageAnalysis: OBImageAnalysis? = null,
             obImageCapture: OBImageCapture? = null
         ): CameraXController =
-            DefaultCameraXController.createController(
+            DefaultCameraXController.create(
                 context,
                 lifecycleOwner,
                 obPreview,
@@ -139,11 +86,99 @@ abstract class CameraXController protected constructor(
                 obImageCapture
             )
     }
+}
+
+internal class LifecycleAwareController(
+    private val lifecycleOwner: LifecycleOwner,
+) {
+    private var cameraState: InternalCameraState = InternalCameraState.CREATED
+
+    /**
+     * If the method is called after the controller creation the
+     * [LifecycleEventObserver] will be registered. The observer will handle
+     * [Lifecycle.Event.ON_RESUME], [Lifecycle.Event.ON_PAUSE] and
+     * [Lifecycle.Event.ON_DESTROY] events so user won't have to.
+     *
+     * Else, it starts the camera with binding the use cases to the
+     * lifecycleOwner by calling [updateCameraStateCallback] function.
+     *
+     * @param targetPreviewView
+     * @param updateCameraStateCallback
+     *
+     * @throws OBDefaultException
+     */
+    fun start(targetPreviewView: PreviewView, updateCameraStateCallback: () -> Unit) {
+
+        if (cameraState == InternalCameraState.CREATED) {
+            // Registers the lifecycle observer
+            lifecycleOwner.lifecycle.addObserver(object : LifecycleEventObserver {
+                override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+                    when (event) {
+                        // If the preview use case is used then we post the call to updateCameraState()
+                        // else we just call updateCameraState() because there is no waiting for UI components to be initialized
+                        Lifecycle.Event.ON_RESUME -> targetPreviewView.post { updateCameraStateCallback() }
+                        Lifecycle.Event.ON_PAUSE -> stop()
+                        Lifecycle.Event.ON_DESTROY -> close()
+                        else -> return
+                    }
+                }
+            })
+        } else {
+            checkIsClosed(
+                "The camera controller is closed!" +
+                        "\nYou might be using the same controller in multiple fragments/activities."
+            )
+            updateCameraStateCallback()
+        }
+
+        cameraState = InternalCameraState.STARTED
+    }
+
+    /**
+     * Updates the internal [cameraState] accordingly.
+     *
+     * @throws OBDefaultException when the state is [InternalCameraState.CLOSED]
+     */
+    fun stop() {
+        checkIsClosed(
+            "The camera controller is closed!" +
+                    "\nYou might be using the same controller in multiple fragments/activities."
+        )
+        if (cameraState == InternalCameraState.CLOSED) {
+            throw OBDefaultException(
+                "The camera controller is closed!" +
+                        "\nYou might be using the same controller in multiple fragments/activities."
+            )
+        }
+        cameraState = InternalCameraState.STOPPED
+    }
+
+    /**
+     * Updates the internal [cameraState] accordingly.
+     *
+     * @throws OBDefaultException when the state is [InternalCameraState.CLOSED]
+     */
+    fun close() {
+        checkIsClosed("The camera controller is already closed!")
+        stop()
+        cameraState = InternalCameraState.CLOSED
+    }
+
+    fun isCameraAvailable(hasSystemFeatureCheck: () -> Boolean): Boolean =
+        (cameraState == InternalCameraState.STARTED) && hasSystemFeatureCheck()
+
+    /**
+     * @throws OBDefaultException when the state is [InternalCameraState.CLOSED]
+     */
+    private fun checkIsClosed(message: String) {
+        if (cameraState == InternalCameraState.CLOSED)
+            throw OBDefaultException(message)
+    }
 
     /**
      * Enum class with values that represent the state of the controller.
      */
-    protected enum class CameraXState {
+    enum class InternalCameraState {
         CREATED,
         STARTED,
         STOPPED,

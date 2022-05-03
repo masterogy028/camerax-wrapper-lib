@@ -5,6 +5,7 @@ import android.view.View
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
+import androidx.camera.view.PreviewView
 import com.dipl.cameraxlib.usecase.OBUseCase
 import com.dipl.cameraxlib.usecase.preview.PreviewUseCaseParameters.Companion.OPTION_PREVIEW_LENS_FACING
 import com.dipl.cameraxlib.usecase.preview.PreviewUseCaseParameters.Companion.OPTION_PREVIEW_VIEW
@@ -47,8 +48,8 @@ class OBPreview(private val parameters: PreviewUseCaseParameters) : OBUseCase() 
         return AspectRatio.RATIO_16_9
     }
 
-    fun getPreviewView(): View =
-        parameters[OPTION_PREVIEW_VIEW]!!
+    fun getPreviewView(): PreviewView =
+        parameters[OPTION_PREVIEW_VIEW] as PreviewView
 
     fun getAspectRatio(): Int =
         screenAspectRatio

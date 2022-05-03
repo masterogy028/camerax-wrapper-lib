@@ -47,7 +47,7 @@ class DefaultCameraXController private constructor(
             ).filterNotNull()
 
             try {
-                camera = cameraProvider?.bindToLifecycle(
+                cameraProvider?.bindToLifecycle(
                     lifecycleOwner,
                     cameraSelector,
                     *useCases.toTypedArray()
@@ -63,9 +63,10 @@ class DefaultCameraXController private constructor(
 
         /**
          * Gets [DefaultCameraXController] instance for the required parameters.
-         * @return [DefaultCameraXController]
+         *
+         * @return [CameraXController]
          */
-        fun createController(
+        fun create(
             context: Context,
             lifecycleOwner: LifecycleOwner,
             obPreview: OBPreview,
