@@ -91,15 +91,15 @@ abstract class CameraXController protected constructor(
 internal class LifecycleAwareController(
     private val lifecycleOwner: LifecycleOwner,
 ) {
-    private var cameraState: InternalCameraState = InternalCameraState.CREATED
+    private var controllerState: InternalControllerState = InternalControllerState.CREATED
 
     /**
      * If the method is called after the controller creation the
      * [LifecycleEventObserver] will be registered. The observer will handle
      * [Lifecycle.Event.ON_RESUME], [Lifecycle.Event.ON_PAUSE] and
-     * [Lifecycle.Event.ON_DESTROY] events so user won't have to.
+     * [Lifecycle.Event.ON_DESTROY] events so the user won't have to.
      *
-     * Else, it starts the camera with binding the use cases to the
+     * Else, it only starts the camera with binding the use cases to the
      * lifecycleOwner by calling [updateCameraStateCallback] function.
      *
      * @param targetPreviewView
@@ -109,79 +109,84 @@ internal class LifecycleAwareController(
      */
     fun start(targetPreviewView: PreviewView, updateCameraStateCallback: () -> Unit) {
 
-        if (cameraState == InternalCameraState.CREATED) {
+        if (controllerState == InternalControllerState.CREATED) {
             // Registers the lifecycle observer
-            lifecycleOwner.lifecycle.addObserver(object : LifecycleEventObserver {
-                override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
-                    when (event) {
-                        // If the preview use case is used then we post the call to updateCameraState()
-                        // else we just call updateCameraState() because there is no waiting for UI components to be initialized
-                        Lifecycle.Event.ON_RESUME -> targetPreviewView.post { updateCameraStateCallback() }
-                        Lifecycle.Event.ON_PAUSE -> stop()
-                        Lifecycle.Event.ON_DESTROY -> close()
-                        else -> return
-                    }
-                }
-            })
-        } else {
-            checkIsClosed(
-                "The camera controller is closed!" +
-                        "\nYou might be using the same controller in multiple fragments/activities."
+            lifecycleOwner.lifecycle.addObserver(
+                CameraXLifecycleEventObserver(
+                    targetPreviewView = targetPreviewView,
+                    updateCameraStateCallback = updateCameraStateCallback,
+                    stopCallback = { stop() },
+                    closeCallback = { close() }
+                )
             )
+        } else {
+            checkIsClosed("The camera controller is closed!")
             updateCameraStateCallback()
         }
 
-        cameraState = InternalCameraState.STARTED
+        controllerState = InternalControllerState.STARTED
     }
 
     /**
-     * Updates the internal [cameraState] accordingly.
+     * Updates the internal [controllerState] accordingly.
      *
-     * @throws OBDefaultException when the state is [InternalCameraState.CLOSED]
+     * @throws OBDefaultException when the state is [InternalControllerState.CLOSED]
      */
     fun stop() {
-        checkIsClosed(
-            "The camera controller is closed!" +
-                    "\nYou might be using the same controller in multiple fragments/activities."
-        )
-        if (cameraState == InternalCameraState.CLOSED) {
-            throw OBDefaultException(
-                "The camera controller is closed!" +
-                        "\nYou might be using the same controller in multiple fragments/activities."
-            )
-        }
-        cameraState = InternalCameraState.STOPPED
+        checkIsClosed("The camera controller is closed!")
+        controllerState = InternalControllerState.STOPPED
     }
 
     /**
-     * Updates the internal [cameraState] accordingly.
+     * Updates the internal [controllerState] accordingly.
      *
-     * @throws OBDefaultException when the state is [InternalCameraState.CLOSED]
+     * @throws OBDefaultException when the state is [InternalControllerState.CLOSED]
      */
-    fun close() {
+    private fun close() {
         checkIsClosed("The camera controller is already closed!")
         stop()
-        cameraState = InternalCameraState.CLOSED
+        controllerState = InternalControllerState.CLOSED
     }
 
     fun isCameraAvailable(hasSystemFeatureCheck: () -> Boolean): Boolean =
-        (cameraState == InternalCameraState.STARTED) && hasSystemFeatureCheck()
+        (controllerState == InternalControllerState.STARTED) && hasSystemFeatureCheck()
 
     /**
-     * @throws OBDefaultException when the state is [InternalCameraState.CLOSED]
+     * @throws OBDefaultException when the state is [InternalControllerState.CLOSED]
      */
     private fun checkIsClosed(message: String) {
-        if (cameraState == InternalCameraState.CLOSED)
+        if (controllerState == InternalControllerState.CLOSED)
             throw OBDefaultException(message)
     }
 
     /**
      * Enum class with values that represent the state of the controller.
      */
-    enum class InternalCameraState {
+    private enum class InternalControllerState {
         CREATED,
         STARTED,
         STOPPED,
         CLOSED
+    }
+
+    /**
+     * Class that handles [Lifecycle] events by calling provided callbacks.
+     */
+    private inner class CameraXLifecycleEventObserver(
+        private val targetPreviewView: PreviewView,
+        private val updateCameraStateCallback: () -> Unit,
+        private val stopCallback: () -> Unit,
+        private val closeCallback: () -> Unit
+    ) : LifecycleEventObserver {
+        override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+            when (event) {
+                // we are posting the updateCameraStateCallback() call to the main
+                // thread because targetPreviewView might not have been initialized yet.
+                Lifecycle.Event.ON_RESUME -> targetPreviewView.post { updateCameraStateCallback() }
+                Lifecycle.Event.ON_PAUSE -> stopCallback()
+                Lifecycle.Event.ON_DESTROY -> closeCallback()
+                else -> return
+            }
+        }
     }
 }
