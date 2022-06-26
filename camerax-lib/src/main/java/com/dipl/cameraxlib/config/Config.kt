@@ -5,9 +5,9 @@ import com.dipl.cameraxlib.MissingMandatoryConfigParameterException
 /**
  * A Config is a collection of options and values.
  *
- * <p>Config object hold pairs of Options/Values and offer methods for querying whether
- * Options are contained in the configuration along with methods for fetching the associated
- * values for options.
+ * Config object hold pairs of Options/Values and offer methods for querying whether
+ * options are contained in the configuration along with methods for fetching the
+ * associated values for options.
  *
  */
 interface Config {
@@ -46,22 +46,13 @@ interface Config {
      *
      * @param [option] to get it's value from the map.
      *
-     * @return A [Set] of [CameraXOption]s contained within this configuration.
+     * @return A [Set] of [UseCaseOption]s contained within this configuration.
      */
     fun <T> getOptionValue(option: Option<T>): T?
-
-    /**
-     * Merges the custom configuration with default configuration.
-     * When the user shall not provide optional configuration parameters the default ones will be used.
-     *
-     * @throws MissingMandatoryConfigParameterException in case of mandatory parameter not being set.
-     */
-    @Throws(MissingMandatoryConfigParameterException::class)
-    fun mergeWithDefaults()
 }
 
 @Suppress("UNCHECKED_CAST")
-abstract class CameraXUseCaseConfig : Config {
+abstract class UseCaseConfig : Config {
 
     override val mOptions: HashMap<Option<*>, Any?> = HashMap()
 
@@ -74,21 +65,33 @@ abstract class CameraXUseCaseConfig : Config {
     }
 
     override fun <T> insertOption(option: Option<T>, value: Any?) {
-        try {
-            mOptions[option] = value as T
-        } catch (e: ClassCastException) {
-            e.printStackTrace()
-        }
-
+        mOptions[option] = value as T
     }
 
     override fun <T> getOptionValue(option: Option<T>): T? = mOptions[option] as T?
 
     /**
-     * Builds default configuration for specific cameraX use case.
-     * This is done for providing default configuration for the client.
+     * Builds default configuration for specific use case.
+     * This is done for providing default configuration of the use case.
      *
      * @return the default [Config]
      */
-    abstract fun buildDefaultConfig(): Config
+    protected abstract fun buildDefaultConfig(): Config
+
+    /**
+     * Merges the custom configuration with default configuration.
+     * When the user shall not provide optional configuration parameters the default ones will be used.
+     *
+     * @throws MissingMandatoryConfigParameterException in case of mandatory parameter not being set.
+     */
+    @Throws(MissingMandatoryConfigParameterException::class)
+    fun mergeWithDefaults() {
+        val default: Config = buildDefaultConfig()
+        for (option: Option<*> in default.listOptions()) {
+            if (option.isMandatory() && !this.containsOption(option)) {
+                throw MissingMandatoryConfigParameterException(option)
+            }
+            insertOption(option, getOptionValue(option) ?: default.getOptionValue(option))
+        }
+    }
 }

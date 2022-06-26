@@ -41,7 +41,7 @@ abstract class Option<T>(
     }
 }
 
-class CameraXOption<T>(optionId: String, valueClass: Class<T>, mandatory: Boolean = true) :
+class UseCaseOption<T>(optionId: String, valueClass: Class<T>, mandatory: Boolean = true) :
     Option<T>(optionId, valueClass, mandatory) {
 
     companion object {
@@ -51,10 +51,10 @@ class CameraXOption<T>(optionId: String, valueClass: Class<T>, mandatory: Boolea
          * @param id         A unique string identifier for this option.
          * @param [valueClass] The class of the value stored by this option.
          * @param <T>        The type of the value stored by this option.
-         * @return An [CameraXOption] object which can be used to store/retrieve values from a [ ].
+         * @return An [UseCaseOption] object which can be used to store/retrieve values from a [ ].
         </T> */
         fun <T> create(id: String, valueClass: Class<T>): Option<T> {
-            return CameraXOption(id, valueClass)
+            return UseCaseOption(id, valueClass)
         }
 
         /**
@@ -63,10 +63,10 @@ class CameraXOption<T>(optionId: String, valueClass: Class<T>, mandatory: Boolea
          * @param id         A unique string identifier for this option.
          * @param [valueClass] The class of the value stored by this option.
          * @param <T>        The type of the value stored by this option.
-         * @return An [CameraXOption] object which can be used to store/retrieve values from a [ ].
+         * @return An [UseCaseOption] object which can be used to store/retrieve values from a [ ].
         </T> */
         fun <T> createNonMandatory(id: String, valueClass: Class<T>): Option<T> {
-            return CameraXOption(id, valueClass, false)
+            return UseCaseOption(id, valueClass, false)
         }
     }
 }

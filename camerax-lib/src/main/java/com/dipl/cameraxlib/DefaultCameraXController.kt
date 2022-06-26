@@ -66,7 +66,7 @@ class DefaultCameraXController private constructor(
          *
          * @return [CameraXController]
          */
-        fun create(
+        internal fun create(
             context: Context,
             lifecycleOwner: LifecycleOwner,
             obPreview: OBPreview,

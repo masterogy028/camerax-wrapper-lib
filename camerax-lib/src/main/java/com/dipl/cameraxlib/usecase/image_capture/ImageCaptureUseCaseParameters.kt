@@ -4,8 +4,8 @@ import android.net.Uri
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageProxy
 import com.dipl.cameraxlib.MissingMandatoryConfigParameterException
-import com.dipl.cameraxlib.config.CameraXOption
-import com.dipl.cameraxlib.config.CameraXUseCaseConfig
+import com.dipl.cameraxlib.config.UseCaseOption
+import com.dipl.cameraxlib.config.UseCaseConfig
 import com.dipl.cameraxlib.config.Config
 import com.dipl.cameraxlib.config.Option
 import com.dipl.cameraxlib.usecase.image_capture.ImageCaptureUseCaseParameters.Companion.OPTION_IMAGE_CAPTURED_CALLBACK
@@ -17,7 +17,7 @@ import java.util.concurrent.Executors
 class ImageCaptureUseCaseParameters private constructor(val config: Config) {
 
     class Builder {
-        private val config: Config = ImageCaptureUseCaseConfig()
+        private val config: UseCaseConfig = ImageCaptureUseCaseConfig()
 
         fun setExecutor(executor: ExecutorService): Builder {
             config.insertOption(OPTION_IMAGE_CAPTURE_EXECUTOR, executor)
@@ -53,51 +53,41 @@ class ImageCaptureUseCaseParameters private constructor(val config: Config) {
     companion object {
         // OPTIONS
         var OPTION_IMAGE_CAPTURE_EXECUTOR: Option<ExecutorService> =
-            CameraXOption.createNonMandatory(
+            UseCaseOption.createNonMandatory(
                 "ognjenbogicevic.imageCapture.executor",
                 ExecutorService::class.java
             )
 
         var OPTION_IMAGE_CAPTURED_CALLBACK: Option<ImageCapturedCallback> =
-            CameraXOption.createNonMandatory(
+            UseCaseOption.createNonMandatory(
                 "ognjenbogicevic.imageCapture.capture.callback",
                 ImageCapturedCallback::class.java
             )
 
         var OPTION_IMAGE_SAVED_CALLBACK: Option<ImageSavedCallback> =
-            CameraXOption.createNonMandatory(
+            UseCaseOption.createNonMandatory(
                 "ognjenbogicevic.imageCapture.saved.callback",
                 ImageSavedCallback::class.java
             )
 
         var OPTION_IMAGE_CAPTURE_MODE: Option<Int> =
-            CameraXOption.createNonMandatory(
+            UseCaseOption.createNonMandatory(
                 "ognjenbogicevic.imageCapture.captureMode",
                 Int::class.java
             )
 
         var OPTION_IMAGE_CAPTURE_FLASH: Option<Int> =
-            CameraXOption.createNonMandatory(
+            UseCaseOption.createNonMandatory(
                 "ognjenbogicevic.imageCapture.flashMode",
                 Int::class.java
             )
     }
 }
 
-internal class ImageCaptureUseCaseConfig : CameraXUseCaseConfig() {
+internal class ImageCaptureUseCaseConfig : UseCaseConfig() {
 
     override fun buildDefaultConfig(): Config {
         return Defaults.build()
-    }
-
-    override fun mergeWithDefaults() {
-        val default: Config = buildDefaultConfig()
-        for (option: Option<*> in default.listOptions()) {
-            if (option.isMandatory() && !this.containsOption(option)) {
-                throw MissingMandatoryConfigParameterException(option)
-            }
-            insertOption(option, getOptionValue(option) ?: default.getOptionValue(option))
-        }
     }
 
     private class Defaults {

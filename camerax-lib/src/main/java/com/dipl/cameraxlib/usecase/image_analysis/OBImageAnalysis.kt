@@ -36,11 +36,3 @@ class OBImageAnalysis(private val parameters: ImageAnalysisUseCaseParameters) : 
             }
     }
 }
-
-inline fun createOBImageAnalysis(
-    buildImageAnalysisUseCaseParameters: ImageAnalysisUseCaseParameters.Builder.() -> Unit
-): OBImageAnalysis {
-    val builder = ImageAnalysisUseCaseParameters.Builder()
-    builder.buildImageAnalysisUseCaseParameters()
-    return OBImageAnalysis(builder.build())
-}

@@ -35,7 +35,7 @@ class OBImageCapture(private val parameters: ImageCaptureUseCaseParameters): OBU
             .build().also { useCase = it }
     }
 
-    fun setCameraAvailabilityChecker(checkFun: () -> Boolean) {
+    internal fun setCameraAvailabilityChecker(checkFun: () -> Boolean) {
         isCameraAvailable = checkFun
     }
 
@@ -140,11 +140,3 @@ data class SaveImageParams(
     val photoExtension: String,
     val outputDirectory: File? = null,
 )
-
-inline fun createOBImageCapture(
-    buildImageCaptureUseCaseParameters: ImageCaptureUseCaseParameters.Builder.() -> Unit
-): OBImageCapture {
-    val builder = ImageCaptureUseCaseParameters.Builder()
-    builder.buildImageCaptureUseCaseParameters()
-    return OBImageCapture(builder.build())
-}

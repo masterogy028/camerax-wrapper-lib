@@ -36,7 +36,7 @@ class OBPreview(private val parameters: PreviewUseCaseParameters) : OBUseCase() 
             .build()
         with(parameters[OPTION_PREVIEW_VIEW]!!) {
             (useCase as Preview).setSurfaceProvider(this.surfaceProvider)
-            this.implementationMode = androidx.camera.view.PreviewView.ImplementationMode.COMPATIBLE
+            this.implementationMode = PreviewView.ImplementationMode.COMPATIBLE
         }
     }
 
@@ -58,17 +58,7 @@ class OBPreview(private val parameters: PreviewUseCaseParameters) : OBUseCase() 
         rotation
 
     companion object {
-
         const val RATIO_4_3_VALUE = 4.0 / 3.0
         const val RATIO_16_9_VALUE = 16.0 / 9.0
-
     }
-}
-
-inline fun createOBPreview(
-    buildPreviewUseCaseParameters: PreviewUseCaseParameters.Builder.() -> Unit
-): OBPreview {
-    val builder = PreviewUseCaseParameters.Builder()
-    builder.buildPreviewUseCaseParameters()
-    return OBPreview(builder.build())
 }

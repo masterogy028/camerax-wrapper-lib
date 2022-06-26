@@ -3,8 +3,8 @@ package com.dipl.cameraxlib.usecase.image_analysis
 import android.graphics.Bitmap
 import androidx.camera.core.ImageAnalysis
 import com.dipl.cameraxlib.MissingMandatoryConfigParameterException
-import com.dipl.cameraxlib.config.CameraXOption
-import com.dipl.cameraxlib.config.CameraXUseCaseConfig
+import com.dipl.cameraxlib.config.UseCaseOption
+import com.dipl.cameraxlib.config.UseCaseConfig
 import com.dipl.cameraxlib.config.Config
 import com.dipl.cameraxlib.config.Option
 import com.dipl.cameraxlib.usecase.image_analysis.ImageAnalysisUseCaseParameters.Companion.OPTION_ANALYZE_BACKPRESSURE_STRATEGY
@@ -21,7 +21,7 @@ import java.util.concurrent.Executors
 class ImageAnalysisUseCaseParameters private constructor(val config: Config) {
 
     class Builder {
-        private val config: Config = ImageAnalysisUseCaseConfig()
+        private val config: UseCaseConfig = ImageAnalysisUseCaseConfig()
 
         fun setCropAnalyzeArea(cropAnalyzeArea: ImageCrop): Builder {
             config.insertOption(OPTION_CROP_ANALYZE_AREA, cropAnalyzeArea)
@@ -62,57 +62,47 @@ class ImageAnalysisUseCaseParameters private constructor(val config: Config) {
     companion object {
         // OPTIONS
         var OPTION_CROP_ANALYZE_AREA: Option<ImageCrop> =
-            CameraXOption.createNonMandatory(
+            UseCaseOption.createNonMandatory(
                 "ognjenbogicevic.analyze.cropArea",
                 ImageCrop::class.java
             )
 
         var OPTION_ANALYZE_INTERVAL: Option<Long> =
-            CameraXOption.createNonMandatory(
+            UseCaseOption.createNonMandatory(
                 "ognjenbogicevic.analyze.interval",
                 Long::class.java
             )
 
         var OPTION_ANALYZE_EXECUTOR: Option<ExecutorService> =
-            CameraXOption.createNonMandatory(
+            UseCaseOption.createNonMandatory(
                 "ognjenbogicevic.analyze.executor",
                 ExecutorService::class.java
             )
 
         var OPTION_SCANNER_TYPE: Option<OBScannerType> =
-            CameraXOption.createNonMandatory(
+            UseCaseOption.createNonMandatory(
                 "ognjenbogicevic.analyze.scanner_type",
                 OBScannerType::class.java
             )
 
         var OPTION_ANALYZE_CALLBACK: Option<AnalyzeImageListener> =
-            CameraXOption.createNonMandatory(
+            UseCaseOption.createNonMandatory(
                 "ognjenbogicevic.analyze.callback",
                 AnalyzeImageListener::class.java
             )
 
         var OPTION_ANALYZE_BACKPRESSURE_STRATEGY: Option<Int> =
-            CameraXOption.createNonMandatory(
+            UseCaseOption.createNonMandatory(
                 "ognjenbogicevic.analyze.backpressure",
                 Int::class.java
             )
     }
 }
 
-internal class ImageAnalysisUseCaseConfig : CameraXUseCaseConfig() {
+internal class ImageAnalysisUseCaseConfig : UseCaseConfig() {
 
     override fun buildDefaultConfig(): Config {
         return Defaults.build()
-    }
-
-    override fun mergeWithDefaults() {
-        val default: Config = buildDefaultConfig()
-        for (option: Option<*> in default.listOptions()) {
-            if (option.isMandatory() && !this.containsOption(option)) {
-                throw MissingMandatoryConfigParameterException(option)
-            }
-            insertOption(option, getOptionValue(option) ?: default.getOptionValue(option))
-        }
     }
 
     private class Defaults {

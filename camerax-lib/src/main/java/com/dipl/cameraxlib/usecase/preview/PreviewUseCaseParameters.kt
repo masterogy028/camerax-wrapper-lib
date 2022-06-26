@@ -3,11 +3,10 @@ package com.dipl.cameraxlib.usecase.preview
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.impl.ImageOutputConfig
 import androidx.camera.view.PreviewView
-import com.dipl.cameraxlib.MissingMandatoryConfigParameterException
-import com.dipl.cameraxlib.config.CameraXUseCaseConfig
-import com.dipl.cameraxlib.config.CameraXOption
 import com.dipl.cameraxlib.config.Config
 import com.dipl.cameraxlib.config.Option
+import com.dipl.cameraxlib.config.UseCaseConfig
+import com.dipl.cameraxlib.config.UseCaseOption
 import com.dipl.cameraxlib.usecase.preview.PreviewUseCaseParameters.Companion.OPTION_PREVIEW_LENS_FACING
 import com.dipl.cameraxlib.usecase.preview.PreviewUseCaseParameters.Companion.OPTION_PREVIEW_VIEW
 import com.dipl.cameraxlib.usecase.preview.PreviewUseCaseParameters.Companion.OPTION_ROTATION
@@ -15,7 +14,7 @@ import com.dipl.cameraxlib.usecase.preview.PreviewUseCaseParameters.Companion.OP
 class PreviewUseCaseParameters private constructor(val config: Config) {
 
     class Builder {
-        private val config: Config = PreviewUseCaseConfig()
+        private val config: UseCaseConfig = PreviewUseCaseConfig()
 
         fun setLensFacing(@CameraSelector.LensFacing lensFacing: Int): Builder {
             config.insertOption(OPTION_PREVIEW_LENS_FACING, lensFacing)
@@ -41,31 +40,21 @@ class PreviewUseCaseParameters private constructor(val config: Config) {
     companion object {
         // OPTIONS
         var OPTION_PREVIEW_VIEW: Option<PreviewView> =
-            CameraXOption.create("ognjenbogicevic.preview.previewView", PreviewView::class.java)
+            UseCaseOption.create("ognjenbogicevic.preview.previewView", PreviewView::class.java)
 
         var OPTION_PREVIEW_LENS_FACING: Option<Int> =
-            CameraXOption.createNonMandatory("ognjenbogicevic.preview.lensFacing", Int::class.java)
+            UseCaseOption.createNonMandatory("ognjenbogicevic.preview.lensFacing", Int::class.java)
 
         var OPTION_ROTATION: Option<Int> =
-            CameraXOption.createNonMandatory("ognjenbogicevic.preview.rotation", Int::class.java)
+            UseCaseOption.createNonMandatory("ognjenbogicevic.preview.rotation", Int::class.java)
 
     }
 }
 
-internal class PreviewUseCaseConfig : CameraXUseCaseConfig() {
+internal class PreviewUseCaseConfig : UseCaseConfig() {
 
     override fun buildDefaultConfig(): Config {
         return Defaults.build()
-    }
-
-    override fun mergeWithDefaults() {
-        val default: Config = buildDefaultConfig()
-        for (option: Option<*> in default.listOptions()) {
-            if (option.isMandatory() && !this.containsOption(option)) {
-                throw MissingMandatoryConfigParameterException(option)
-            }
-            insertOption(option, getOptionValue(option) ?: default.getOptionValue(option))
-        }
     }
 
     private class Defaults {

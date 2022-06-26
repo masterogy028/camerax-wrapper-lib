@@ -44,7 +44,7 @@ abstract class CameraXController protected constructor(
     /**
      * The function initializes camerax with selected use cases.
      *
-     * The function should be called every time the device configuration changes.
+     * The function is called every time the [lifecycleOwner] receives the ON_RESUME event.
      *
      * @throws [OBDefaultException] in case of binding failure.
      */

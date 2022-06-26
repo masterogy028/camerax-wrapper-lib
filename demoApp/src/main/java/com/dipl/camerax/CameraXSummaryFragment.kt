@@ -16,18 +16,16 @@ import com.dipl.camerax.utils.*
 import com.dipl.camerax.utils.callbacks.ImageCaptureCallbackImpl
 import com.dipl.camerax.utils.callbacks.ImageSavedCallbackImpl
 import com.dipl.camerax.utils.scanning_components.AnalyzeComponent
-import com.dipl.cameraxlib.CameraXController
+import com.dipl.cameraxlib.dsl_builders.cameraXController
 import com.dipl.cameraxlib.usecase.image_analysis.AnalyzeImageListener
+import com.dipl.cameraxlib.usecase.image_analysis.ImageAnalysisUseCaseParameters
 import com.dipl.cameraxlib.usecase.image_analysis.analyzers.BarcodeScannerResultListener
 import com.dipl.cameraxlib.usecase.image_analysis.analyzers.FaceRecognitionScannerResultListener
 import com.dipl.cameraxlib.usecase.image_analysis.analyzers.QRScannerResultListener
-import com.dipl.cameraxlib.usecase.image_analysis.createOBImageAnalysis
 import com.dipl.cameraxlib.usecase.image_analysis.models.ImageCrop
 import com.dipl.cameraxlib.usecase.image_analysis.models.OBScannerType
 import com.dipl.cameraxlib.usecase.image_capture.OBImageCapture
 import com.dipl.cameraxlib.usecase.image_capture.SaveImageParams
-import com.dipl.cameraxlib.usecase.image_capture.createOBImageCapture
-import com.dipl.cameraxlib.usecase.preview.createOBPreview
 import com.google.mlkit.vision.face.Face
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -107,95 +105,92 @@ class CameraXSummaryFragment :
 
     @SuppressLint("CheckResult")
     private fun setUpCameraX() {
-        val obPreview = createOBPreview {
-            setPreviewView(viewBinding.pvDisplay)
-            setLensFacing(lensFacing)
-        }
-        val obImageAnalyzer = createOBImageAnalysis {
-            when (scanType) {
-                is DomainScanType.QRScanner -> {
-                    viewBinding.ivRectView.visibility = View.GONE
-                    setCropAnalyzeArea(
-                        ImageCrop.WithRectangleView(
-                            viewBinding.recvDecoration.also { it.visibility = View.VISIBLE }
-                        )
-                    )
-                    setScannerType(OBScannerType.QRScannerType(object : QRScannerResultListener {
-                        override fun onSuccessStringResult(result: String) {
-                            viewBinding.tvResult.text = getString(R.string.result, result)
+        cameraXController(requireContext(), viewLifecycleOwner) {
+            preview {
+                setPreviewView(viewBinding.pvDisplay)
+                setLensFacing(lensFacing)
+            }
+            obImageCapture = imageCapture {
+                setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY) // ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY
+                setFlashMode(ImageCapture.FLASH_MODE_OFF) // ImageCapture.FLASH_MODE_ON
+                setImageSavedCallback(ImageSavedCallbackImpl)
+                setImageCapturedCallback(ImageCaptureCallbackImpl)
+            }
+            imageAnalysis {
+                pickScanType()
+                setBackpressureStrategy(STRATEGY_KEEP_ONLY_LATEST)
+                setAnalyzeCallback(object : AnalyzeImageListener {
+                    override fun analyze(image: Bitmap) {
+                        analyzeComponent.scanForQRCode(image).addOnSuccessListener { barcodes ->
+                            Log.d(TAG, barcodes.firstOrNull()?.displayValue ?: "")
                         }
-                    }))
-                }
+                            .addOnFailureListener { }
+                    }
+                })
+            }
+        }.start()
+    }
 
-                is DomainScanType.BarcodeScanner -> {
-                    viewBinding.ivRectView.visibility = View.GONE
-                    setCropAnalyzeArea(
-                        ImageCrop.WithRectangleView(
-                            viewBinding.recvDecoration.also { it.visibility = View.VISIBLE }
-                        )
+    private fun ImageAnalysisUseCaseParameters.Builder.pickScanType() {
+        when (scanType) {
+            is DomainScanType.QRScanner -> {
+                viewBinding.ivRectView.visibility = View.GONE
+                setCropAnalyzeArea(
+                    ImageCrop.WithRectangleView(
+                        viewBinding.recvDecoration.also { it.visibility = View.VISIBLE }
                     )
-                    setScannerType(OBScannerType.BarcodeScannerType(object :
-                        BarcodeScannerResultListener {
-                        override fun onSuccessStringResult(result: String) {
-                            viewBinding.tvResult.text = getString(R.string.result, result)
-                        }
-                    }))
-                }
-
-                is DomainScanType.FaceScanner -> {
-                    viewBinding.recvDecoration.visibility = View.GONE
-                    viewBinding.ivRectView.visibility = View.VISIBLE
-                    viewBinding.tvResult.text = ""
-                    setScannerType(OBScannerType.FaceRecognitionScannerType(object :
-                        FaceRecognitionScannerResultListener {
-                        override fun onSuccessResult(
-                            faces: MutableList<Face>,
-                            originalBitmap: Bitmap
-                        ) {
-                            Log.d(
-                                "generic FaceScanner:",
-                                faces.joinToString(separator = ", ") { it.boundingBox.flattenToString() })
-                            try {
-                                viewBinding.ivRectView.post {
-                                    var resultBitmap = targetBitmap
-                                    for (face in faces) {
-                                        resultBitmap =
-                                            drawRect(resultBitmap, originalBitmap, face, lensFacing)
-                                    }
-                                    viewBinding.ivRectView.setImageBitmap(resultBitmap)
-                                }
-                            } catch (e: java.lang.Exception) {
-                                e.printStackTrace()
-                            }
-                        }
-                    }))
-                }
+                )
+                setScannerType(OBScannerType.QRScannerType(object : QRScannerResultListener {
+                    override fun onSuccessStringResult(result: String) {
+                        viewBinding.tvResult.text = getString(R.string.result, result)
+                    }
+                }))
             }
 
-            setBackpressureStrategy(STRATEGY_KEEP_ONLY_LATEST)
-            setAnalyzeCallback(object : AnalyzeImageListener {
-                override fun analyze(image: Bitmap) {
-                    analyzeComponent.scanForQRCode(image).addOnSuccessListener { barcodes ->
-                        Log.d(TAG, barcodes.firstOrNull()?.displayValue ?: "")
+            is DomainScanType.BarcodeScanner -> {
+                viewBinding.ivRectView.visibility = View.GONE
+                setCropAnalyzeArea(
+                    ImageCrop.WithRectangleView(
+                        viewBinding.recvDecoration.also { it.visibility = View.VISIBLE }
+                    )
+                )
+                setScannerType(OBScannerType.BarcodeScannerType(object :
+                    BarcodeScannerResultListener {
+                    override fun onSuccessStringResult(result: String) {
+                        viewBinding.tvResult.text = getString(R.string.result, result)
                     }
-                        .addOnFailureListener { }
-                }
-            })
-        }
-        obImageCapture = createOBImageCapture {
-            setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY) // ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY
-            setFlashMode(ImageCapture.FLASH_MODE_OFF) // ImageCapture.FLASH_MODE_ON
-            setImageSavedCallback(ImageSavedCallbackImpl)
-            setImageCapturedCallback(ImageCaptureCallbackImpl)
-        }
+                }))
+            }
 
-        CameraXController.getControllerForParameters(
-            requireContext(),
-            viewLifecycleOwner,
-            obPreview,
-            obImageAnalyzer,
-            obImageCapture
-        ).start()
+            is DomainScanType.FaceScanner -> {
+                viewBinding.recvDecoration.visibility = View.GONE
+                viewBinding.ivRectView.visibility = View.VISIBLE
+                viewBinding.tvResult.text = ""
+                setScannerType(OBScannerType.FaceRecognitionScannerType(object :
+                    FaceRecognitionScannerResultListener {
+                    override fun onSuccessResult(
+                        faces: MutableList<Face>,
+                        originalBitmap: Bitmap
+                    ) {
+                        Log.d(
+                            "generic FaceScanner:",
+                            faces.joinToString(separator = ", ") { it.boundingBox.flattenToString() })
+                        try {
+                            viewBinding.ivRectView.post {
+                                var resultBitmap = targetBitmap
+                                for (face in faces) {
+                                    resultBitmap =
+                                        drawRect(resultBitmap, originalBitmap, face, lensFacing)
+                                }
+                                viewBinding.ivRectView.setImageBitmap(resultBitmap)
+                            }
+                        } catch (e: java.lang.Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                }))
+            }
+        }
     }
 
     companion object {
