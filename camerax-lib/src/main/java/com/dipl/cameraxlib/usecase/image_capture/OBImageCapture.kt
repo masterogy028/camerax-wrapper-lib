@@ -5,8 +5,14 @@ import android.media.MediaScannerConnection
 import android.net.Uri
 import android.util.Log
 import android.webkit.MimeTypeMap
-import androidx.camera.core.*
-import com.dipl.cameraxlib.*
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.ImageProxy
+import com.dipl.cameraxlib.CameraXController
+import com.dipl.cameraxlib.OBImageCaptureException
+import com.dipl.cameraxlib.createFile
+import com.dipl.cameraxlib.getDefaultOutputDirectory
 import com.dipl.cameraxlib.usecase.OBUseCase
 import com.dipl.cameraxlib.usecase.image_capture.ImageCaptureUseCaseParameters.Companion.OPTION_IMAGE_CAPTURED_CALLBACK
 import com.dipl.cameraxlib.usecase.image_capture.ImageCaptureUseCaseParameters.Companion.OPTION_IMAGE_CAPTURE_EXECUTOR
@@ -16,7 +22,7 @@ import com.dipl.cameraxlib.usecase.image_capture.ImageCaptureUseCaseParameters.C
 import com.dipl.cameraxlib.usecase.preview.PreviewUseCaseParameters.Companion.OPTION_PREVIEW_LENS_FACING
 import java.io.File
 
-class OBImageCapture(private val parameters: ImageCaptureUseCaseParameters): OBUseCase() {
+class OBImageCapture(private val parameters: ImageCaptureUseCaseParameters) : OBUseCase() {
     private val imageCaptureUseCase by lazy { useCase as ImageCapture }
     private lateinit var isCameraAvailable: () -> Boolean
 
@@ -41,6 +47,10 @@ class OBImageCapture(private val parameters: ImageCaptureUseCaseParameters): OBU
 
     /**
      * Control function that executes [ImageCapture] use case if it is bound to the lifecycle.
+     * Makes [ImageCapture.takePicture] call that captures a new image and saves it to a file along
+     * with application specified metadata. Calls [ImageSavedCallback.onSuccess] if capture was
+     * successful, else it makes [ImageSavedCallback.onError] call to a
+     * [OPTION_IMAGE_SAVED_CALLBACK] preset parameter.
      *
      * @param context used for directory and file resolving
      * @param saveImageParams containing image file information
@@ -49,6 +59,9 @@ class OBImageCapture(private val parameters: ImageCaptureUseCaseParameters): OBU
      */
     fun captureAndSaveImage(context: Context, saveImageParams: SaveImageParams) {
         checkCameraAvailability()
+
+        val imageSavedCallback = parameters[OPTION_IMAGE_SAVED_CALLBACK]
+            ?: throw OBImageCaptureException("Parameter ImageSavedCallback is not set!")
 
         // Create output file to hold the image
         val photoFile = createFile(
@@ -92,12 +105,12 @@ class OBImageCapture(private val parameters: ImageCaptureUseCaseParameters): OBU
                             CameraXController.TAG,
                             "Image capture scanned into media store: $uri"
                         )
-                        (parameters[OPTION_IMAGE_SAVED_CALLBACK]!!).onSuccess(uri)
+                        imageSavedCallback.onSuccess(uri)
                     }
                 }
 
                 override fun onError(exception: ImageCaptureException) {
-                    (parameters[OPTION_IMAGE_SAVED_CALLBACK]!!).onError(exception)
+                    imageSavedCallback.onError(exception)
                 }
             })
     }
@@ -113,17 +126,20 @@ class OBImageCapture(private val parameters: ImageCaptureUseCaseParameters): OBU
     fun captureImage() {
         checkCameraAvailability()
 
+        val imageCapturedCallback = parameters[OPTION_IMAGE_CAPTURED_CALLBACK]
+            ?: throw OBImageCaptureException("Parameter ImageCapturedCallback is not set!")
+
         imageCaptureUseCase.takePicture(
             parameters[OPTION_IMAGE_CAPTURE_EXECUTOR]!!,
             object : ImageCapture.OnImageCapturedCallback() {
                 override fun onCaptureSuccess(image: ImageProxy) {
                     super.onCaptureSuccess(image)
-                    (parameters[OPTION_IMAGE_CAPTURED_CALLBACK]!!).onSuccess(image)
+                    imageCapturedCallback.onSuccess(image)
                 }
 
                 override fun onError(exception: ImageCaptureException) {
                     super.onError(exception)
-                    (parameters[OPTION_IMAGE_CAPTURED_CALLBACK]!!).onError(exception)
+                    imageCapturedCallback.onError(exception)
                 }
             })
     }

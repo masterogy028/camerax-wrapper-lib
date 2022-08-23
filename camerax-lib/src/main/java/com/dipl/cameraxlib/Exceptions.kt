@@ -8,10 +8,17 @@ sealed class CameraXExceptions(private val error: String, val throwable: Throwab
     }
 }
 
-class OBPictureAnalyzeException(e: String, throwable: Throwable? = null) : CameraXExceptions(e, throwable)
-class OBImageCaptureException(e: String, throwable: Throwable? = null) : CameraXExceptions(e, throwable)
-class IOException(e: String, throwable: Throwable? = null) : CameraXExceptions(e, throwable)
-class OBDefaultException(e: String, throwable: Throwable? = null) : CameraXExceptions(e, throwable)
+class OBPictureAnalyzeException(errorMessage: String, throwable: Throwable? = null) :
+    CameraXExceptions(errorMessage, throwable)
+
+class OBImageCaptureException(errorMessage: String, throwable: Throwable? = null) :
+    CameraXExceptions(errorMessage, throwable)
+
+class IOException(errorMessage: String, throwable: Throwable? = null) :
+    CameraXExceptions(errorMessage, throwable)
+
+class OBDefaultException(errorMessage: String, throwable: Throwable? = null) :
+    CameraXExceptions(errorMessage, throwable)
 
 /**
  * [MissingMandatoryConfigParameterException] displays error message about missing mandatory configuration parameter.

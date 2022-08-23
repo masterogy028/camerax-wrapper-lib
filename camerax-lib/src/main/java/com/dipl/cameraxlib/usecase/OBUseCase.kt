@@ -8,7 +8,7 @@ import androidx.camera.core.UseCase
  */
 abstract class OBUseCase {
 
-    // Field that is used to encapsulate respectful camerax use case
+    // Field that is used to keep library use case's respective camerax use case
     lateinit var useCase: UseCase
 
     // standard fields used across all camerax use cases
@@ -17,9 +17,6 @@ abstract class OBUseCase {
 
     /**
      * Function that generates a camerax use case and assigns it to the [useCase] field.
-     *
-     * @param pScreenAspectRatio is used to define the generated camerax use case
-     * @param pRotation is used to define the generated camerax use case
      */
     abstract fun build(pScreenAspectRatio: Int? = null, pRotation: Int? = null)
 }
