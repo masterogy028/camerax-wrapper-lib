@@ -31,15 +31,12 @@ class FaceRecognitionScanner(
 
     override fun analyze(image: ImageProxy) {
         super.analyze(image)
-        if (freshData) {
-            freshData = false
-            lastAnalyzedFrame?.also { bitmapImage ->
-                val inputImage = InputImage.fromBitmap(bitmapImage, 0)
-                detector.process(inputImage).addOnSuccessListener { faces ->
-                    registeredResultListener.onSuccessResult(faces, bitmapImage)
-                }
-                    .addOnFailureListener { registeredResultListener.onFailure(it) }
+        lastAnalyzedFrame?.also { bitmapImage ->
+            val inputImage = InputImage.fromBitmap(bitmapImage, 0)
+            detector.process(inputImage).addOnSuccessListener { faces ->
+                registeredResultListener.onSuccessResult(faces, bitmapImage)
             }
+                .addOnFailureListener { registeredResultListener.onFailure(it) }
         }
     }
 }

@@ -20,7 +20,6 @@ open class DefaultImageAnalyzer(
     private val analyzeInterval = analyzeInterval ?: DEFAULT_ANALYZE_INTERVAL
     private var lastAnalyzedTimestamp = 0L
     protected var lastAnalyzedFrame: Bitmap? = null
-    protected var freshData: Boolean = false
 
     @SuppressLint("UnsafeExperimentalUsageError")
     override fun analyze(image: ImageProxy) {
@@ -36,7 +35,6 @@ open class DefaultImageAnalyzer(
                 // if bitmap is not null, we call callback with that bitmap
                 rotatedBitmap?.let {
                     lastAnalyzedFrame = rotatedBitmap.crop(imageCrop).also(analyzeImageBitmap)
-                    freshData = true
                 }
             }
             lastAnalyzedTimestamp = currentTimestamp
