@@ -14,12 +14,10 @@ class QRScanner(
     analyzeInterval: Long?
 ) : DefaultImageAnalyzer(imageCrop, analyzeImageBitmap, analyzeInterval) {
 
-    private val options = BarcodeScannerOptions.Builder()
-        .setBarcodeFormats(
-            Barcode.FORMAT_QR_CODE
-        )
+    private val scannerOptions = BarcodeScannerOptions.Builder()
+        .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
         .build()
-    private val scanner = BarcodeScanning.getClient(options)
+    private val scanner = BarcodeScanning.getClient(scannerOptions)
 
     override fun analyze(image: ImageProxy) {
         super.analyze(image)

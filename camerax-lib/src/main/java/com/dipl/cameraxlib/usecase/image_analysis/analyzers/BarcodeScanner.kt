@@ -14,8 +14,8 @@ class BarcodeScanner(
     analyzeInterval: Long?
 ) : DefaultImageAnalyzer(imageCrop, analyzeImageBitmap, analyzeInterval) {
 
-    private val options = BarcodeScannerOptions.Builder().build()
-    private val scanner = BarcodeScanning.getClient(options)
+    private val scannerOptions = BarcodeScannerOptions.Builder().build()
+    private val scanner = BarcodeScanning.getClient(scannerOptions)
 
     override fun analyze(image: ImageProxy) {
         super.analyze(image)

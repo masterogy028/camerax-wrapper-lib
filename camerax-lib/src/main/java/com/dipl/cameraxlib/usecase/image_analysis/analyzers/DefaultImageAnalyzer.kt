@@ -8,9 +8,8 @@ import com.dipl.cameraxlib.*
 import com.dipl.cameraxlib.usecase.image_analysis.models.ImageCrop
 
 /**
- * [DefaultImageAnalyzer] is class which is used to convert image from YUV_420_888 format to bitmap,
- * performs crop it if needed,
- * and call callback with it.
+ * Class used to convert image from YUV_420_888 format to bitmap,
+ * performs cropping if needed, and calls callback with it.
  */
 open class DefaultImageAnalyzer(
     private val imageCrop: ImageCrop?,
