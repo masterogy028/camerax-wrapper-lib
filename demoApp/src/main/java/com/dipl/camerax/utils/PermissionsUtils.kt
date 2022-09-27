@@ -9,7 +9,7 @@ import androidx.fragment.app.Fragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 /**
- * Extension function with a purpose to register for the activity result when requesting [Manifest.permission.WRITE_EXTERNAL_STORAGE] permissions.
+ * Extension function with a purpose to register for the activity result when requesting [Manifest.permission.CAMERA] permissions.
  * MUST BE CALLED IN FRAGMENT'S onCreate METHOD!
  * @param [whenGranted] Lambda to be invoked in case user grants the permission
  *

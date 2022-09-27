@@ -28,8 +28,11 @@ class DefaultCameraXController private constructor(
         obImageAnalysis?.build(obPreview.getAspectRatio(), obPreview.getCurrentRotation())
         obImageCapture?.build(obPreview.getAspectRatio(), obPreview.getCurrentRotation())
 
-        // setting the function that checks camera's availability
-        obImageCapture?.setCameraAvailabilityChecker { isCameraAvailable(obPreview.lensFacing.toPackageManagerCameraFeature()) }
+        obImageCapture?.apply {
+            // setting the function that checks camera's availability
+            setCameraAvailabilityChecker { isCameraAvailable(obPreview.lensFacing.toPackageManagerCameraFeature()) }
+            setContext(context)
+        }
 
         val cameraSelector = obPreview.cameraSelector
 

@@ -10,20 +10,10 @@ object ImageCaptureCallbackImpl : ImageCapturedCallback {
     override fun onSuccess(image: ImageProxy) {
         Log.d("ImageCaptureSuccess", "onSuccess: ${image.imageInfo}")
     }
-
-    override fun onError(e: Exception) {
-        Log.d("ImageCaptureError", "onError: $e")
-        e.printStackTrace()
-    }
 }
 
 object ImageSavedCallbackImpl : ImageSavedCallback {
     override fun onSuccess(uri: Uri) {
         Log.d("ImageSavedSuccess", "onSuccess: ${uri.path}")
-    }
-
-    override fun onError(e: Exception) {
-        Log.d("ImageSavedError", "onError: $e")
-        e.printStackTrace()
     }
 }

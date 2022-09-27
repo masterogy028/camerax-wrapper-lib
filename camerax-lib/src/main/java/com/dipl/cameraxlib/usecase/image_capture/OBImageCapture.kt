@@ -25,7 +25,7 @@ import java.io.File
 class OBImageCapture(private val parameters: ImageCaptureUseCaseParameters) : OBUseCase() {
     private val imageCaptureUseCase by lazy { useCase as ImageCapture }
     private lateinit var isCameraAvailable: () -> Boolean
-
+    private lateinit var context: Context
     override fun build(pScreenAspectRatio: Int?, pRotation: Int?) {
 
         pScreenAspectRatio?.let { this.screenAspectRatio = it }
@@ -44,6 +44,9 @@ class OBImageCapture(private val parameters: ImageCaptureUseCaseParameters) : OB
     internal fun setCameraAvailabilityChecker(checkFun: () -> Boolean) {
         isCameraAvailable = checkFun
     }
+    internal fun setContext(context: Context) {
+        this.context = context
+    }
 
     /**
      * Control function that executes [ImageCapture] use case if it is bound to the lifecycle.
@@ -57,7 +60,7 @@ class OBImageCapture(private val parameters: ImageCaptureUseCaseParameters) : OB
      *
      * @throws [OBImageCaptureException]
      */
-    fun captureAndSaveImage(context: Context, saveImageParams: SaveImageParams) {
+    fun captureAndSaveImage(saveImageParams: SaveImageParams) {
         checkCameraAvailability()
 
         val imageSavedCallback = parameters[OPTION_IMAGE_SAVED_CALLBACK]

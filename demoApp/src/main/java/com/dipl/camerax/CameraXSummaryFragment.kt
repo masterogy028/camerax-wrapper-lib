@@ -8,7 +8,8 @@ import android.view.View
 import androidx.activity.result.ActivityResultLauncher
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST
-import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY
+import androidx.camera.core.ImageCapture.FLASH_MODE_OFF
 import androidx.core.view.drawToBitmap
 import androidx.navigation.fragment.findNavController
 import com.dipl.camerax.databinding.FragmentCameraXSummaryBinding
@@ -70,7 +71,6 @@ class CameraXSummaryFragment :
             getString(R.string.current_mode, scanType.toString())
         viewBinding.btnTakePicture.setOnClickListener {
             obImageCapture.captureAndSaveImage(
-                requireContext(),
                 SaveImageParams(
                     "cameraX_dipl${System.currentTimeMillis()}",
                     ".jpg",
@@ -111,8 +111,8 @@ class CameraXSummaryFragment :
                 setLensFacing(lensFacing)
             }
             obImageCapture = imageCapture {
-                setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY) // ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY
-                setFlashMode(ImageCapture.FLASH_MODE_OFF) // ImageCapture.FLASH_MODE_ON
+                setCaptureMode(CAPTURE_MODE_MAXIMIZE_QUALITY) // ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY
+                setFlashMode(FLASH_MODE_OFF) // ImageCapture.FLASH_MODE_ON
                 setImageSavedCallback(ImageSavedCallbackImpl)
                 setImageCapturedCallback(ImageCaptureCallbackImpl)
             }
@@ -142,6 +142,7 @@ class CameraXSummaryFragment :
                 )
                 setScannerType(OBScannerType.QRScannerType(object : QRScannerResultListener {
                     override fun onSuccessStringResult(result: String) {
+                        viewBinding.tvResult.visibility = View.VISIBLE
                         viewBinding.tvResult.text = getString(R.string.result, result)
                     }
                 }))

@@ -124,12 +124,12 @@ internal class ImageCaptureUseCaseConfig : UseCaseConfig() {
 
 interface ImageSavedCallback {
     fun onSuccess(uri: Uri)
-    fun onError(e: Exception)
+    fun onError(e: Exception) {}
 }
 
 interface ImageCapturedCallback {
     fun onSuccess(image: ImageProxy)
-    fun onError(e: Exception)
+    fun onError(e: Exception) {}
 }
 
 operator fun <T> ImageCaptureUseCaseParameters.get(option: Option<T>): T? {
