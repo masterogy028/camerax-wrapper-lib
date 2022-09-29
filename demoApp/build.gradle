@@ -5,9 +5,23 @@ plugins {
     id 'dagger.hilt.android.plugin'
 }
 
+def keystorePropertiesFile = rootProject.file("demoApp/key.properties")
+def keystoreProperties = new Properties()
+keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+
 android {
     compileSdkVersion diplCompileVersion
     buildToolsVersion diplBuildToolsVersion
+
+    signingConfigs {
+        release {
+            keyAlias keystoreProperties['keyAlias']
+
+            keyPassword keystoreProperties['keyPassword']
+            storeFile file(keystoreProperties['storeFile'])
+            storePassword keystoreProperties['storePassword']
+        }
+    }
 
     defaultConfig {
         applicationId "com.dipl.camerax"
@@ -15,7 +29,6 @@ android {
         targetSdkVersion diplTargetSdkVersion
         versionCode 1
         versionName "1.0"
-
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments += ["room.schemaLocation": "$projectDir/schemas".toString()]
@@ -28,9 +41,11 @@ android {
     }
 
     buildTypes {
+        debug {}
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
     compileOptions {
@@ -76,8 +91,8 @@ dependencies {
     implementation 'com.google.mlkit:barcode-scanning:17.0.0'
     implementation 'com.google.mlkit:face-detection:16.1.2'
 
-    def cameraxVersion = "1.1.0"
+    def cameraxVersion = "1.0.0"
     implementation "androidx.camera:camera-camera2:$cameraxVersion"
-    implementation "androidx.camera:camera-view:$cameraxVersion"
+    implementation "androidx.camera:camera-view:1.0.0-alpha10"
 
 }

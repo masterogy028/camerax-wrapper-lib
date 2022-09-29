@@ -48,10 +48,10 @@ class CameraXSummaryFragment :
     private lateinit var obImageCapture: OBImageCapture
 
     // storing the value of camera lens facing
-    private var lensFacing: Int = CameraSelector.LENS_FACING_FRONT
+    private var lensFacing: Int = CameraSelector.LENS_FACING_BACK
 
     // scan type so we can switch scan types programmatically within this fragment
-    private var scanType: DomainScanType = DomainScanType.BarcodeScanner
+    private var scanType: DomainScanType = DomainScanType.FaceScanner
 
     // the bitmap of the view that we want to draw on
     private val targetBitmap by lazy { viewBinding.ivRectView.drawToBitmap() }
@@ -119,14 +119,14 @@ class CameraXSummaryFragment :
             imageAnalysis {
                 pickScanType()
                 setBackpressureStrategy(STRATEGY_KEEP_ONLY_LATEST)
-                setAnalyzeCallback(object : AnalyzeImageListener {
+                /*setAnalyzeCallback(object : AnalyzeImageListener {
                     override fun analyze(image: Bitmap) {
                         analyzeComponent.scanForQRCode(image).addOnSuccessListener { barcodes ->
                             Log.d(TAG, barcodes.firstOrNull()?.displayValue ?: "")
                         }
                             .addOnFailureListener { }
                     }
-                })
+                })*/
             }
         }.start()
     }
@@ -158,6 +158,7 @@ class CameraXSummaryFragment :
                 setScannerType(OBScannerType.BarcodeScannerType(object :
                     BarcodeScannerResultListener {
                     override fun onSuccessStringResult(result: String) {
+                        viewBinding.tvResult.visibility = View.VISIBLE
                         viewBinding.tvResult.text = getString(R.string.result, result)
                     }
                 }))
@@ -173,6 +174,7 @@ class CameraXSummaryFragment :
                         faces: MutableList<Face>,
                         originalBitmap: Bitmap
                     ) {
+                        viewBinding.tvResult.visibility = View.GONE
                         Log.d(
                             "generic FaceScanner:",
                             faces.joinToString(separator = ", ") { it.boundingBox.flattenToString() })

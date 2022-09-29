@@ -43,7 +43,7 @@ open class DefaultImageAnalyzer(
     }
 
     companion object {
-        private const val DEFAULT_ANALYZE_INTERVAL = 200L
+        private const val DEFAULT_ANALYZE_INTERVAL = 500L
     }
 }
 

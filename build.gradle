@@ -33,7 +33,7 @@ allprojects {
 
 ext {
     diplMinSdkVersion = 21
-    diplTargetSdkVersion = 29
+    diplTargetSdkVersion = 30
     diplCompileVersion = 31
     diplMinDevSdkVersion = 21
     diplBuildToolsVersion = '30.0.3'
